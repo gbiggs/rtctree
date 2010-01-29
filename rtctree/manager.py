@@ -304,6 +304,7 @@ class Manager(TreeNode):
         self._parse_manager_children()
 
     def _parse_component_children(self):
+        return
         # Parses the list returned by _obj.get_components into child nodes.
         comps = self._obj.get_components()
         for c in comps:
@@ -315,6 +316,7 @@ class Manager(TreeNode):
             self._add_child(leaf)
 
     def _parse_manager_children(self):
+        return
         # Parses the list returned by _obj.get_slave_managers into child nodes.
         mgrs = self._obj.get_slave_managers()
         index = 0

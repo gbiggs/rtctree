@@ -24,7 +24,7 @@ __version__ = '$Revision: $'
 
 
 import CosNaming
-from omniORB import URI, CORBA
+from omniORB import URI, CORBA, TRANSIENT_ConnectFailed
 import sys
 
 from rtctree.component import Component
@@ -98,13 +98,21 @@ found: {1}'.format(sys.argv[0], name)
                 # Assume it's a component
                 name = URI.nameToString(binding.binding_name)
                 obj = self._context.resolve(binding.binding_name)
-                obj = obj._narrow(RTC.RTObject)
+                try:
+                    obj = obj._narrow(RTC.RTObject)
+                except CORBA.TRANSIENT, e:
+                    if e.args[0] == TRANSIENT_ConnectFailed:
+                        print >>sys.stderr, '{0}: Warning: zombie component \
+{1} found under {2}'.format(sys.argv[0], name, self.name)
+                        return
+                    else:
+                        raise
                 try:
                     leaf = Component(name, self, obj)
                 except CORBA.OBJECT_NOT_EXIST:
                     # Component zombie
                     print >>sys.stderr, '{0}: Warning: zombie component \
-found: {1}'.format(sys.argv[0], name)
+{1} found under {2}'.format(sys.argv[0], name, self.name)
                     return
                 self._add_child(leaf)
         else:
