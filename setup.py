@@ -24,6 +24,7 @@ __version__ = '$Revision: $'
 # $Source$
 
 
+from distutils import errors
 from distutils import log
 from distutils import util
 from distutils.cmd import Command
