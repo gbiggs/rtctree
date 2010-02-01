@@ -28,6 +28,7 @@ from omniORB import URI, CORBA, TRANSIENT_ConnectFailed
 import sys
 
 from rtctree.component import Component
+from rtctree.exceptions import BadPathError
 from rtctree.manager import Manager
 from rtctree.node import TreeNode
 from rtctree.options import Options
@@ -50,6 +51,24 @@ class Directory(TreeNode):
     def __init__(self, name, parent, children=None):
         '''Constructor. Calls the TreeNode constructor.'''
         super(Directory, self).__init__(name, parent, children)
+
+    def unbind(self, name):
+        '''Unbind an object from the context represented by this directory.
+
+        Warning: this is a dangerous operation. You may unlink an entire
+        section of the tree and be unable to recover it. Be careful what you
+        unbind.
+
+        The name should be in the format used in paths. For example,
+        'manager.mgr' or 'ConsoleIn0.rtc'.
+
+        '''
+        id, sep, kind = name.rpartition('.')
+        name = CosNaming.NameComponent(id=str(id), kind=str(kind))
+        try:
+            self.context.unbind([name])
+        except CosNaming.NamingContext.NotFound:
+            raise BadPathError(name)
 
     @property
     def context(self):
@@ -82,6 +101,7 @@ class Directory(TreeNode):
             bindings_it.destroy()
 
     def _process_binding(self, binding, orb):
+        print binding.binding_name
         # Process a binding, creating the correct child type for it and adding
         # that child to this node's children.
         if binding.binding_type == CosNaming.nobject:
