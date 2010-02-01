@@ -52,6 +52,11 @@ class Directory(TreeNode):
         super(Directory, self).__init__(name, parent, children)
 
     @property
+    def context(self):
+        '''The object representing this naming context.'''
+        return self._context
+
+    @property
     def is_directory(self):
         '''Is this node a directory?'''
         return True

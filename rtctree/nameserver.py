@@ -66,6 +66,11 @@ class NameServer(Directory):
         '''The ORB used to access this name server.'''
         return self._orb
 
+    @property
+    def ns_object(self):
+        '''The object representing this name server.'''
+        return self._ns_obj
+
     def _parse_server(self, address, orb):
         # Parse the name server.
         self._address = address
@@ -77,11 +82,11 @@ class NameServer(Directory):
         # Try to connect to a name server and get the root naming context.
         self._full_address = 'corbaloc::{0}/NameService'.format(address)
         try:
-            ns_obj = orb.string_to_object(self._full_address)
+            self._ns_obj = orb.string_to_object(self._full_address)
         except CORBA.ORB.InvalidName:
             raise InvalidServiceError(address)
         try:
-            root_context = ns_obj._narrow(CosNaming.NamingContext)
+            root_context = self._ns_obj._narrow(CosNaming.NamingContext)
         except CORBA.TRANSIENT, e:
             if e.args[0] == TRANSIENT_ConnectFailed:
                 raise InvalidServiceError(address)
