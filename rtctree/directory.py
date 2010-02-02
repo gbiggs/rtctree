@@ -101,7 +101,6 @@ class Directory(TreeNode):
             bindings_it.destroy()
 
     def _process_binding(self, binding, orb):
-        print binding.binding_name
         # Process a binding, creating the correct child type for it and adding
         # that child to this node's children.
         if binding.binding_type == CosNaming.nobject:
