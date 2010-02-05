@@ -211,6 +211,18 @@ class TreeNode(object):
             return self._parent.nameserver
 
     @property
+    def orb(self):
+        '''The ORB used to access this object.
+
+        This property's value will be None if no object above this object is a
+        name server.
+
+        '''
+        if self._parent.name == '/':
+            return None
+        return self._parent.orb
+
+    @property
     def parent(self):
         '''This node's parent, or None if no parent.'''
         return self._parent
