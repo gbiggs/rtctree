@@ -114,14 +114,14 @@ class Port(object):
         return_code, profile = self._obj.connect(profile)
         if return_code != RTC.RTC_OK:
             raise FailedToConnectError(return_code)
-        self._reparse_connections()
-        dest._reparse_connections()
+        self.reparse_connections()
+        dest.reparse_connections()
 
     def disconnect_all(self):
         '''Disconnect all connections to this port.'''
         for conn in self.connections:
             self.object.disconnect(conn.id)
-        self._reparse_connections()
+        self.reparse_connections()
 
     def get_connection_by_dest(self, dest):
         '''Search for a connection between this and another port.'''
@@ -136,6 +136,10 @@ class Port(object):
             if conn.name == name:
                 return conn
         return None
+
+    def reparse_connections(self):
+        # Call to force a delayed refresh of the connections information.
+        self._connections = None
 
     @property
     def connections(self):
@@ -191,10 +195,6 @@ class Port(object):
             prefix = self.owner.instance_name + '.'
             if self._name.startswith(prefix):
                 self._name = self._name[len(prefix):]
-
-    def _reparse_connections(self):
-        # Call to force a delayed refresh of the connections information.
-        self._connections = None
 
 
 ##############################################################################
