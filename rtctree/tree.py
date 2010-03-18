@@ -40,7 +40,7 @@ from rtctree.component import Component
 ##############################################################################
 ## API functions
 
-def create_rtctree(servers=None, paths=None):
+def create_rtctree(servers=None, paths=None, orb=None):
     '''Create an RTCTree object, catching various common errors and outputting
     a suitable error message for them.
 
@@ -51,7 +51,7 @@ def create_rtctree(servers=None, paths=None):
 
     '''
     try:
-        tree = RTCTree(servers=servers, paths=paths)
+        tree = RTCTree(servers=servers, paths=paths, orb=orb)
     except InvalidServiceError, e:
         print >>sys.stderr, '{0}: Cannot access {1}: Invalid \
 service.'.format(sys.argv[0], e[0])
@@ -92,17 +92,19 @@ class RTCTree(object):
     is considered to be bad.
 
     '''
-    def __init__(self, servers=None, paths=None):
+    def __init__(self, servers=None, paths=None, orb=None):
         '''Constructor.
 
         @param servers A list of servers to parse into the tree.
         @param paths A list of paths from which to get servers to parse into
                      the tree.
+        @param orb If not None, the specified ORB will be used. If None, the
+                   tree object will create its own ORB. 
         @raises NonRootPathError
 
         '''
         self._root = TreeNode('/', None)
-        self._create_orb()
+        self._create_orb(orb)
         if servers:
             self._parse_name_servers(servers)
         if paths:
@@ -123,8 +125,9 @@ class RTCTree(object):
 
     def __del__(self):
         # Destructor to ensure the ORB shuts down correctly.
-        self._orb.shutdown(wait_for_completion=CORBA.FALSE)
-        self._orb.destroy()
+        if self._orb_is_mine:
+            self._orb.shutdown(wait_for_completion=CORBA.FALSE)
+            self._orb.destroy()
 
     def __str__(self):
         # Get a (potentially very large) string describing the tree.
@@ -215,14 +218,19 @@ class RTCTree(object):
                          if s]
             self._parse_name_servers(servers)
 
-    def _create_orb(self):
+    def _create_orb(self, orb=None):
         # Create the ORB, optionally checking the environment variable for
         # arguments to pass to the ORB.
-        if ORB_ARGS_ENV_VAR in os.environ:
-            orb_args = os.environ[ORB_ARGS_ENV_VAR].split(';')
+        if orb:
+            self._orb = orb
+            self._orb_is_mine = False
         else:
-            orb_args = []
-        self._orb = CORBA.ORB_init(orb_args)
+            if ORB_ARGS_ENV_VAR in os.environ:
+                orb_args = os.environ[ORB_ARGS_ENV_VAR].split(';')
+            else:
+                orb_args = []
+            self._orb = CORBA.ORB_init(orb_args)
+            self._orb_is_mine = True
 
     def _parse_name_servers(self, servers):
         # Parse a list of name servers.

@@ -75,14 +75,14 @@ class NameServer(Directory):
         # Parse the name server.
         self._address = address
         self._orb = orb
-        root_context = self._connect_to_naming_service(address, orb)
+        root_context = self._connect_to_naming_service(address)
         self._parse_context(root_context, orb)
 
-    def _connect_to_naming_service(self, address, orb):
+    def _connect_to_naming_service(self, address):
         # Try to connect to a name server and get the root naming context.
         self._full_address = 'corbaloc::{0}/NameService'.format(address)
         try:
-            self._ns_obj = orb.string_to_object(self._full_address)
+            self._ns_obj = self._orb.string_to_object(self._full_address)
         except CORBA.ORB.InvalidName:
             raise InvalidServiceError(address)
         try:
