@@ -23,7 +23,7 @@ __version__ = '$Revision: $'
 # $Source$
 
 
-from rtctree.utils import build_attr_string
+from rtctree.utils import build_attr_string, nvlist_to_dict
 import RTC
 
 
@@ -40,7 +40,7 @@ class ExecutionContext(object):
                       to uniquely identify it.
 
         '''
-        self._obj = ec_obj
+        self._obj = ec_obj._narrow(RTC.ExecutionContextService)
         self._handle = handle
         self._parse()
 
@@ -129,6 +129,35 @@ class ExecutionContext(object):
         return self.kind_as_string()
 
     @property
+    def owner(self):
+        '''The RTObject that owns this context.'''
+        return self._owner
+
+    @property
+    def owner_name(self):
+        '''The name of the RTObject that owns this context.'''
+        if self._owner:
+            return self._owner.get_component_profile().instance_name
+        else:
+            return ''
+
+    @property
+    def participants(self):
+        '''The list of RTObjects participating in this context.'''
+        return self._participants
+
+    @property
+    def participant_names(self):
+        '''The names of the RTObjects participating in this context.'''
+        return [obj.get_component_profile().instance_name \
+                for obj in self._participants]
+
+    @property
+    def properties(self):
+        '''The execution context's extra properties dictionary.'''
+        return self._properties
+
+    @property
     def rate(self):
         '''The execution rate of this execution context.'''
         return self._rate
@@ -150,15 +179,17 @@ class ExecutionContext(object):
         else:
             self._running = False
 
-        self._rate = self._obj.get_rate()
-
-        kind = self._obj.get_kind()
-        if kind == RTC.PERIODIC:
+        profile = self._obj.get_profile()
+        self._rate = profile.rate
+        if profile.kind == RTC.PERIODIC:
             self._kind = self.PERIODIC
-        elif kind == RTC.EVENT_DRIVEN:
+        elif profile.kind == RTC.EVENT_DRIVEN:
             self._kind = self.EVENT_DRIVEN
         else:
             self._kind = self.OTHER
+        self._owner = profile.owner
+        self._participants = profile.participants
+        self._properties = nvlist_to_dict(profile.properties)
 
     ## Constant for a periodic execution context.
     PERIODIC = 1
