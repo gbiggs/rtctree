@@ -136,8 +136,8 @@ class Manager(TreeNode):
         '''The list of components in this manager, if any.
 
         This information can also be found by listing the children of this node
-        that are of type @ref Manager. That method is more useful as it returns
-        the tree entries for the managers.
+        that are of type @ref Component. That method is more useful as it returns
+        the tree entries for the components.
 
         '''
         if not self._components:
