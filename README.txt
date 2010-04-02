@@ -280,3 +280,16 @@ For further documentation, see the Doxygen-generated API documentation.
 For examples, see the rtcshell set of utilities. These illustrate using rtctree
 to perform most of the actions possible using RTSystemEditor.
 
+
+Changelog
+---------
+
+2.0
+- Parse more information about execution contexts
+- Added the ability to use a provided ORB instead of creating one
+- Exposed the reparse_connections() method
+- New API call to get the ORB used for a node
+- New API call to unbind a name from a context
+- Allow access to more CORBA objects
+- Catch more zombies
+
