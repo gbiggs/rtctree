@@ -265,8 +265,6 @@ class DataPort(Port):
         Port._parse(self)
         profile = self._obj.get_port_profile()
         self._properties = nvlist_to_dict(profile.properties)
-        # TODO: look up the data type object and fill this in
-        self._data_type = None
 
 
 class DataInPort(DataPort):
