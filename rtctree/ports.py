@@ -510,6 +510,10 @@ class Connection(object):
         component name, e.g. 'ConsoleIn0.in'). The full path can be used to
         find ports in the tree.
 
+        If, for some reason, the owner node of a port cannot be found, that
+        entry in the list will contain ('Unknown', None). This typically means
+        that a component's name has been clobbered on the name server.
+
         This list will be created at the first reference to this property.
         This means that the first reference may be delayed by CORBA calls,
         but others will return quickly (unless a delayed reparse has been
@@ -527,16 +531,20 @@ class Connection(object):
                 # My owner's owner is a component node in the tree
                 if self.owner and self.owner.owner:
                     root = self.owner.owner.root
-                    port_owner = [n for n in root.iterate(has_port,
-                            args=p, filter=['is_component']) if n][0]
-                    port_owner_path = port_owner.full_path
-                    port_name = p.get_port_profile().name
-                    prefix = port_owner.instance_name + '.'
-                    if port_name.startswith(prefix):
-                        port_name = port_name[len(prefix):]
-                    self._ports.append((port_owner_path + ':' + \
-                                            port_name,
-                                        parse_port(p, self.owner.owner)))
+                    owner_nodes = [n for n in root.iterate(has_port,
+                            args=p, filter=['is_component']) if n]
+                    if not owner_nodes:
+                        self._ports.append(('Unknown', None))
+                    else:
+                        port_owner = owner_nodes[0]
+                        port_owner_path = port_owner.full_path
+                        port_name = p.get_port_profile().name
+                        prefix = port_owner.instance_name + '.'
+                        if port_name.startswith(prefix):
+                            port_name = port_name[len(prefix):]
+                        self._ports.append((port_owner_path + ':' + \
+                                                port_name,
+                                            parse_port(p, self.owner.owner)))
                 else:
                     self._ports.append((p.get_port_profile().name,
                                         parse_port(p, None)))
