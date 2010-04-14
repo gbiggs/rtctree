@@ -32,6 +32,7 @@ from rtctree.exceptions import BadPathError
 from rtctree.manager import Manager
 from rtctree.node import TreeNode
 from rtctree.options import Options
+from rtctree.unknown import Unknown
 import RTC
 import RTM
 
@@ -114,12 +115,11 @@ class Directory(TreeNode):
                     leaf = Manager(name, self, obj)
                 except CORBA.OBJECT_NOT_EXIST:
                     # Manager zombie
-                    print >>sys.stderr, '{0}: Warning: zombie component \
+                    print >>sys.stderr, '{0}: Warning: zombie manager \
 found: {1}'.format(sys.argv[0], name)
                     return
                 self._add_child(leaf)
-            else:
-                # Assume it's a component
+            elif binding.binding_name[0].kind == 'rtc':
                 name = URI.nameToString(binding.binding_name)
                 obj = self._context.resolve(binding.binding_name)
                 try:
@@ -138,6 +138,12 @@ found: {1}'.format(sys.argv[0], name)
                     print >>sys.stderr, '{0}: Warning: zombie component \
 {1} found under {2}'.format(sys.argv[0], name, self.name)
                     return
+                self._add_child(leaf)
+            else:
+                # Unknown type - add a plain node
+                name = URI.nameToString(binding.binding_name)
+                obj = self._context.resolve(binding.binding_name)
+                leaf = Unknown(name, self, obj)
                 self._add_child(leaf)
         else:
             # This is a context, and therefore a subdirectory.
