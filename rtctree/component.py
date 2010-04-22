@@ -55,14 +55,48 @@ class Component(TreeNode):
 
         '''
         super(Component, self).__init__(name, parent)
-        self._owned_ecs = None
-        self._owned_ec_states = None
-        self._participating_ecs = None
-        self._participating_ec_states = None
+        self._reset_data()
         self._obj = obj
-        self._ports = None
-        self._conf_sets = None
-        self._active_conf_set = None
+        self._parse_profile()
+
+    def reparse(self):
+        '''Reparse the component's information.
+
+        This will cause a delayed reparse of most information. This means that
+        a piece of information, such as the list of ports, will be cleared and
+        remain empty until it is next requested, at which point a fresh list
+        will be retrieved from the component.
+
+        If you only want to reparse a specific piece of information, use one of
+        the reparse_X() methods.
+
+        '''
+        self._reset_data()
+        self._parse_profile()
+
+    def reparse_conf_sets(self):
+        '''Reparse configuration sets.'''
+        self._reset_conf_sets()
+
+    def reparse_ecs(self):
+        '''Reparse all execution contexts.'''
+        self.reparse_owned_ecs()
+        self.reparse_participating_ecs()
+
+    def reparse_owned_ecs(self):
+        '''Reparse only owned execution contexts.'''
+        self._reset_owned_ecs()
+
+    def reparse_participating_ecs(self):
+        '''Reparse only participating execution contexts.'''
+        self._reset_participating_ecs()
+
+    def reparse_ports(self):
+        '''Reparse ports.'''
+        self._reset_ports()
+
+    def reparse_profile(self):
+        '''Reparse the component's profile.'''
         self._parse_profile()
 
     ###########################################################################
@@ -579,6 +613,31 @@ class Component(TreeNode):
             else:
                 self._parent_obj = ''
             self._properties = nvlist_to_dict(profile.properties)
+
+    def _reset_conf_sets(self):
+        with self._mutex:
+            self._conf_sets = None
+            self._active_conf_set = None
+
+    def _reset_data(self):
+        self._reset_owned_ecs()
+        self._reset_participating_ecs()
+        self._reset_ports()
+        self._reset_conf_sets()
+
+    def _reset_owned_ecs(self):
+        with self._mutex:
+            self._owned_ecs = None
+            self._owned_ec_states = None
+
+    def _reset_participating_ecs(self):
+        with self._mutex:
+            self._participating_ecs = None
+            self._participating_ec_states = None
+
+    def _reset_ports(self):
+        with self._mutex:
+            self._ports = None
 
     ## Constant for a component in the inactive state
     INACTIVE = 1

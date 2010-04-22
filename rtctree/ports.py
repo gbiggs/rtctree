@@ -76,6 +76,7 @@ class Port(object):
                      None.
 
         '''
+        super(Port, self).__init__()
         self._obj = port_obj
         self._connections = None
         self._owner = owner
@@ -144,8 +145,13 @@ class Port(object):
                     return conn
             return None
 
+    def reparse(self):
+        '''Reparse the port.'''
+        self._parse()
+        self.reparse_connections()
+
     def reparse_connections(self):
-        # Call to force a delayed refresh of the connections information.
+        '''Reparse the connections this port is involved in.'''
         with self._mutex:
             self._connections = None
 
@@ -168,9 +174,10 @@ class Port(object):
     @property
     def is_connected(self):
         '''Check if this port is connected to any other ports.'''
-        if self.connections:
-            return True
-        return False
+        with self._mutex:
+            if self.connections:
+                return True
+            return False
 
     @property
     def name(self):
@@ -279,7 +286,7 @@ class DataPort(Port):
     def _parse(self):
         # Parse the PortService object to build a port profile.
         with self._mutex:
-            Port._parse(self)
+            super(DataPort, self)._parse()
             profile = self._obj.get_port_profile()
             self._properties = nvlist_to_dict(profile.properties)
 
@@ -401,7 +408,6 @@ class CorbaPort(Port):
         with self._mutex:
             profile = self._obj.get_port_profile()
             self._properties = nvlist_to_dict(profile.properties)
-            Port._parse(self)
 
 
 ##############################################################################
@@ -437,6 +443,10 @@ class SvcInterface(object):
                     build_attr_string('reset')
             else:
                 return result[0]
+
+    def reparse(self):
+        '''Reparse the interface object.'''
+        self._parse()
 
     @property
     def instance_name(self):
@@ -515,6 +525,10 @@ class Connection(object):
                 if port.object._is_equivalent(p[1].object):
                     return True
             return False
+
+    def reparse(self):
+        '''Reparse the connection.'''
+        self._parse()
 
     @property
     def id(self):

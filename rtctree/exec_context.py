@@ -104,6 +104,15 @@ class ExecutionContext(object):
         else:
             return result[0]
 
+    def reparse(self):
+        '''Reparse this execution context.
+
+        This causes the execution context's state, profile and other
+        information to be reloaded from the remote object.
+
+        '''
+        self._parse()
+
     def running_as_string(self, add_colour=True):
         '''Get the state of this context as an optionally coloured string.
 

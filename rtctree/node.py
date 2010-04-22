@@ -44,6 +44,7 @@ class TreeNode(object):
         @param children If the list of children is already known, put it here.
 
         '''
+        super(TreeNode, self).__init__()
         self._name = name
         self._parent = parent
         if children:
@@ -273,6 +274,10 @@ class TreeNode(object):
         # Add a child to this node.
         with self._mutex:
             self._children[new_child._name] = new_child
+
+    def _remove_all_children(self):
+        # Remove all children from this node.
+        self._children = {}
 
     def _remove_child(self, child):
         # Remove a child from this node.
