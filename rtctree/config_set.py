@@ -29,7 +29,8 @@ from rtctree.utils import dict_to_nvlist
 
 class ConfigurationSet(object):
     '''A class representing a configuration set.'''
-    def __init__(self, owner, object, description, data):
+    def __init__(self, owner=None, object=None, description=None, data=None,
+                 *args, **kwargs):
         '''Constructor.
 
         @param owner The owner of this configuration set, if any. Should be a
@@ -40,6 +41,7 @@ class ConfigurationSet(object):
                     of this configuration set.
 
         '''
+        super(ConfigurationSet, self).__init__(*args, **kwargs)
         self._owner = owner
         self._object = object
         self._description = description

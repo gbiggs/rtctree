@@ -44,16 +44,17 @@ class NameServer(Directory):
     root context.
 
     '''
-    def __init__(self, orb, address, parent, children=None):
+    def __init__(self, orb=None, address=None, parent=None,
+                 *args, **kwargs):
         '''Constructor.
 
         @param orb An orb object to use to connect to the name server.
         @param address The address of the name server. Used as the node name.
         @param parent The parent node of this node, if any.
-        @param children If the list of children is already known, put it here.
 
         '''
-        super(NameServer, self).__init__(address, parent, children)
+        super(NameServer, self).__init__(name=address, parent=parent,
+                                         *args, **kwargs)
         self._parse_server(address, orb)
 
     @property

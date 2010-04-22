@@ -50,9 +50,10 @@ class Manager(TreeNode):
     remove new components and managers to the tree at run time.
 
     '''
-    def __init__(self, name, parent, obj):
+    def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''
-        super(Manager, self).__init__(name, parent)
+        super(Manager, self).__init__(name=name, parent=parent, *args,
+                                      **kwargs)
         self._obj = obj
         self._parse()
 

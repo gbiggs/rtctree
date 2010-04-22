@@ -34,7 +34,7 @@ from rtctree.utils import build_attr_string, nvlist_to_dict
 
 class ExecutionContext(object):
     '''An execution context, within which components may be executing.'''
-    def __init__(self, ec_obj, handle=None):
+    def __init__(self, ec_obj=None, handle=None, *args, **kwargs):
         '''Constructor.
 
         @param ec_obj The CORBA ExecutionContext object to wrap.
@@ -42,6 +42,7 @@ class ExecutionContext(object):
                       to uniquely identify it.
 
         '''
+        super(ExecutionContext, self).__init__(*args, **kwargs)
         self._obj = ec_obj._narrow(RTC.ExecutionContextService)
         self._handle = handle
         self._mutex = threading.RLock()

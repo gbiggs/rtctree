@@ -49,9 +49,10 @@ class Directory(TreeNode):
     it represents the root context of a name server.
 
     '''
-    def __init__(self, name, parent, children=None):
+    def __init__(self, name=None, parent=None, children=None, *args, **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''
-        super(Directory, self).__init__(name, parent, children)
+        super(Directory, self).__init__(name=name, parent=parent,
+                                        children=children, *args, **kwargs)
 
     def reparse(self):
         '''Reparse all children of this directory.

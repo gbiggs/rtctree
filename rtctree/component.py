@@ -46,7 +46,7 @@ class Component(TreeNode):
     references to the actual objects and object types used in the component.
 
     '''
-    def __init__(self, name, parent, obj):
+    def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor.
 
         @param name Name of this component (i.e. its entry in the path).
@@ -54,7 +54,8 @@ class Component(TreeNode):
         @param obj The CORBA LightweightRTObject object to wrap.
 
         '''
-        super(Component, self).__init__(name, parent)
+        super(Component, self).__init__(name=name, parent=parent,
+                                        *args, **kwargs)
         self._reset_data()
         self._obj = obj
         self._parse_profile()

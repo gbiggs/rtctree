@@ -36,7 +36,8 @@ class TreeNode(object):
     class of this class.
 
     '''
-    def __init__(self, name, parent, children=None):
+    def __init__(self, name=None, parent=None, children=None, *args,
+                 **kwargs):
         '''Constructor.
 
         @param name Name of this node (i.e. its entry in the path).
@@ -44,7 +45,7 @@ class TreeNode(object):
         @param children If the list of children is already known, put it here.
 
         '''
-        super(TreeNode, self).__init__()
+        super(TreeNode, self).__init__(*args, **kwargs)
         self._name = name
         self._parent = parent
         if children:
