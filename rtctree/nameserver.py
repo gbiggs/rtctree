@@ -64,37 +64,41 @@ class NameServer(Directory):
     @property
     def orb(self):
         '''The ORB used to access this name server.'''
-        return self._orb
+        with self._mutex:
+            return self._orb
 
     @property
     def ns_object(self):
         '''The object representing this name server.'''
-        return self._ns_obj
+        with self._mutex:
+            return self._ns_obj
 
     def _parse_server(self, address, orb):
         # Parse the name server.
-        self._address = address
-        self._orb = orb
-        root_context = self._connect_to_naming_service(address)
-        self._parse_context(root_context, orb)
+        with self._mutex:
+            self._address = address
+            self._orb = orb
+            root_context = self._connect_to_naming_service(address)
+            self._parse_context(root_context, orb)
 
     def _connect_to_naming_service(self, address):
         # Try to connect to a name server and get the root naming context.
-        self._full_address = 'corbaloc::{0}/NameService'.format(address)
-        try:
-            self._ns_obj = self._orb.string_to_object(self._full_address)
-        except CORBA.ORB.InvalidName:
-            raise InvalidServiceError(address)
-        try:
-            root_context = self._ns_obj._narrow(CosNaming.NamingContext)
-        except CORBA.TRANSIENT, e:
-            if e.args[0] == TRANSIENT_ConnectFailed:
+        with self._mutex:
+            self._full_address = 'corbaloc::{0}/NameService'.format(address)
+            try:
+                self._ns_obj = self._orb.string_to_object(self._full_address)
+            except CORBA.ORB.InvalidName:
                 raise InvalidServiceError(address)
-            else:
-                raise
-        if CORBA.is_nil(root_context):
-            raise FailedToNarrowRootNamingError(address)
-        return root_context
+            try:
+                root_context = self._ns_obj._narrow(CosNaming.NamingContext)
+            except CORBA.TRANSIENT, e:
+                if e.args[0] == TRANSIENT_ConnectFailed:
+                    raise InvalidServiceError(address)
+                else:
+                    raise
+            if CORBA.is_nil(root_context):
+                raise FailedToNarrowRootNamingError(address)
+            return root_context
 
 
 # vim: tw=79

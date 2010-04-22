@@ -22,6 +22,8 @@ Object representing a generic node in the tree.
 __version__ = '$Revision: $'
 # $Source$
 
+import threading
+
 from rtctree.exceptions import NotRelatedError
 
 ##############################################################################
@@ -48,13 +50,15 @@ class TreeNode(object):
             self._children = children
         else:
             self._children = {}
+        self._mutex = threading.RLock()
 
     def __str__(self):
         '''Get this node as a string.'''
-        indent = ''.rjust(self.depth)
-        result = '{0}{1}, {2}\n'.format(indent, self._name, self._children)
-        for child in self._children:
-            result += str(self._children[child])
+        with self._mutex:
+            indent = ''.rjust(self.depth)
+            result = '{0}{1}, {2}\n'.format(indent, self._name, self._children)
+            for child in self._children:
+                result += str(self._children[child])
         return result
 
     def get_node(self, path):
@@ -67,15 +71,16 @@ class TreeNode(object):
                 point to a node in the tree below this node.
 
         '''
-        if path[0] == self._name:
-            if len(path) == 1:
-                return self
-            elif path[1] in self._children:
-                return self._children[path[1]].get_node(path[1:])
+        with self._mutex:
+            if path[0] == self._name:
+                if len(path) == 1:
+                    return self
+                elif path[1] in self._children:
+                    return self._children[path[1]].get_node(path[1:])
+                else:
+                    return None
             else:
                 return None
-        else:
-            return None
 
     def has_path(self, path):
         '''Check if a path exists below this node.
@@ -88,19 +93,21 @@ class TreeNode(object):
                 otherwise.
 
         '''
-        if path[0] == self._name:
-            if len(path) == 1:
-                return True
-            elif path[1] in self._children:
-                return self._children[path[1]].has_path(path[1:])
+        with self._mutex:
+            if path[0] == self._name:
+                if len(path) == 1:
+                    return True
+                elif path[1] in self._children:
+                    return self._children[path[1]].has_path(path[1:])
+                else:
+                    return False
             else:
                 return False
-        else:
-            return False
 
     def is_child(self, other_node):
         '''Is @ref other_node a child of this node?'''
-        return other_node in self._children
+        with self._mutex:
+            return other_node in self._children
 
     def is_parent(self, other_node):
         '''Is @ref other_node the parent of this note?'''
@@ -124,30 +131,32 @@ class TreeNode(object):
         @return The results of the calls to @ref func in a list.
 
         '''
-        result = []
-        if filter:
-            filters_passed = True
-            for f in filter:
-                if type(f) == str:
-                    if not eval('self.' + f):
-                        filters_passed = False
-                        break
-                else:
-                    if not f(self):
-                        filters_passed = False
-                        break
-            if filters_passed:
+        with self._mutex:
+            result = []
+            if filter:
+                filters_passed = True
+                for f in filter:
+                    if type(f) == str:
+                        if not eval('self.' + f):
+                            filters_passed = False
+                            break
+                    else:
+                        if not f(self):
+                            filters_passed = False
+                            break
+                if filters_passed:
+                    result = [func(self, args)]
+            else:
                 result = [func(self, args)]
-        else:
-            result = [func(self, args)]
-        for child in self._children:
-            result += self._children[child].iterate(func, args, filter)
+            for child in self._children:
+                result += self._children[child].iterate(func, args, filter)
         return result
 
     @property
     def children(self):
         '''The child nodes of this node (if any).'''
-        return self._children.values()
+        with self._mutex:
+            return self._children.values()
 
     @property
     def depth(self):
@@ -156,21 +165,23 @@ class TreeNode(object):
         The root node is depth 0.
 
         '''
-        if self._parent:
-            return len(self._parent.full_path.split('/')) - 1
-        else:
-            return 0
+        with self._mutex:
+            if self._parent:
+                return len(self._parent.full_path.split('/')) - 1
+            else:
+                return 0
 
     @property
     def full_path(self):
         '''The full path of this node.'''
-        if self._parent:
-            if self._parent._name == '/':
-                return self._parent.full_path + self._name
+        with self._mutex:
+            if self._parent:
+                if self._parent._name == '/':
+                    return self._parent.full_path + self._name
+                else:
+                    return self._parent.full_path + '/' + self._name
             else:
-                return self._parent.full_path + '/' + self._name
-        else:
-            return self._name
+                return self._name
 
     @property
     def is_component(self):
@@ -180,9 +191,10 @@ class TreeNode(object):
     @property
     def is_directory(self):
         '''Is this node a directory?'''
-        if self._name == '/':
-            return True
-        return False
+        with self._mutex:
+            if self._name == '/':
+                return True
+            return False
 
     @property
     def is_manager(self):
@@ -197,18 +209,20 @@ class TreeNode(object):
     @property
     def name(self):
         '''The name of this node.'''
-        return self._name
+        with self._mutex:
+            return self._name
 
     @property
     def nameserver(self):
         '''The name server of the node (i.e. its top-most parent below /).'''
-        if not self._parent:
-            # The root node does not have a name server
-            return None
-        elif self._parent.name == '/':
-            return self
-        else:
-            return self._parent.nameserver
+        with self._mutex:
+            if not self._parent:
+                # The root node does not have a name server
+                return None
+            elif self._parent.name == '/':
+                return self
+            else:
+                return self._parent.nameserver
 
     @property
     def orb(self):
@@ -218,47 +232,54 @@ class TreeNode(object):
         name server.
 
         '''
-        if self._parent.name == '/':
-            return None
-        return self._parent.orb
+        with self._mutex:
+            if self._parent.name == '/':
+                return None
+            return self._parent.orb
 
     @property
     def parent(self):
         '''This node's parent, or None if no parent.'''
-        return self._parent
+        with self._mutex:
+            return self._parent
 
     @parent.setter
     def parent(self, new_parent):
-        if self._parent:
-            # Make sure to unlink the tree as well
-            self._parent._remove_child(self)
-        self._parent = new_parent
+        with self._mutex:
+            if self._parent:
+                # Make sure to unlink the tree as well
+                self._parent._remove_child(self)
+            self._parent = new_parent
 
     @property
     def parent_name(self):
         '''The name of this node's parent or an empty string if no parent.'''
-        if self._parent:
-            return self._parent.name
-        else:
-            return ''
+        with self._mutex:
+            if self._parent:
+                return self._parent.name
+            else:
+                return ''
 
     @property
     def root(self):
         '''The root node of the tree this node is in.'''
-        if self._parent:
-            return self._parent.root
-        else:
-            return self
+        with self._mutex:
+            if self._parent:
+                return self._parent.root
+            else:
+                return self
 
     def _add_child(self, new_child):
         # Add a child to this node.
-        self._children[new_child._name] = new_child
+        with self._mutex:
+            self._children[new_child._name] = new_child
 
     def _remove_child(self, child):
         # Remove a child from this node.
-        if child.name not in self._children:
-            raise NotRelatedError(self.name, child.name)
-        del self._children[child.name]
+        with self._mutex:
+            if child.name not in self._children:
+                raise NotRelatedError(self.name, child.name)
+            del self._children[child.name]
 
 
 # vim: tw=79

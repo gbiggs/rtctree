@@ -54,7 +54,8 @@ class Unknown(TreeNode):
     @property
     def object(self):
         '''The LightweightRTObject this object wraps.'''
-        return self._obj
+        with self._mutex:
+            return self._obj
 
     ###########################################################################
     # Internal API
