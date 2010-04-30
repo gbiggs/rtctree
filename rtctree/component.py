@@ -269,12 +269,13 @@ class Component(TreeNode):
     def state_in_ec(self, ec_index):
         '''Get the state of the component in an execution context.
 
-        @param ec_index The index of the execution context to reset in. This
-                        index is into the total array of contexts, that is both
-                        owned and participating contexts. If the value of
-                        ec_index is greater than the length of @ref owned_ecs,
-                        that length is subtracted from ec_index and the result
-                        used as an index into @ref participating_ecs.
+        @param ec_index The index of the execution context to check the state
+                        in. This index is into the total array of contexts,
+                        that is both owned and participating contexts. If the
+                        value of ec_index is greater than the length of @ref
+                        owned_ecs, that length is subtracted from ec_index and
+                        the result used as an index into @ref
+                        participating_ecs.
 
         '''
         with self._mutex:
@@ -285,6 +286,34 @@ class Component(TreeNode):
                 return self.participating_ec_states[ec_index]
             else:
                 return self.owned_ec_states[ec_index]
+
+    def refresh_state_in_ec(self, ec_index):
+        '''Get the up-to-date state of the component in an execution context.
+
+        This function will update the state, rather than using the cached
+        value. This may take time, if the component is executing on a remote
+        node.
+
+        @param ec_index The index of the execution context to check the state
+                        in. This index is into the total array of contexts,
+                        that is both owned and participating contexts. If the
+                        value of ec_index is greater than the length of @ref
+                        owned_ecs, that length is subtracted from ec_index and
+                        the result used as an index into @ref
+                        participating_ecs.
+
+        '''
+        with self._mutex:
+            if ec_index >= len(self.owned_ecs):
+                ec_index -= len(self.owned_ecs)
+                if ec_index >= len(self.participating_ecs):
+                    raise BadECIndexError(ec_index)
+                state = self._get_ec_state(self.participating_ecs[ec_index])
+                self.participating_ec_states[ec_index] = state
+            else:
+                state = self._get_ec_state(self.owned_ecs[ec_index])
+                self.owned_ec_states[ec_index] = state
+            return state
 
     @property
     def alive(self):
@@ -304,18 +333,7 @@ class Component(TreeNode):
                 if self.owned_ecs:
                     states = []
                     for ec in self.owned_ecs:
-                        if self._obj.is_alive(ec._obj):
-                            ec_state = ec.get_component_state(self._obj)
-                            if ec_state == RTC.ACTIVE_STATE:
-                                states.append(self.ACTIVE)
-                            elif ec_state == RTC.ERROR_STATE:
-                                states.append(self.ERROR)
-                            elif ec_state == RTC.INACTIVE_STATE:
-                                states.append(self.INACTIVE)
-                            else:
-                                states.append(self.UNKNOWN)
-                        else:
-                            states.append(self.CREATED)
+                        states.append(self._get_ec_state(ec))
                     self._owned_ec_states = states
                 else:
                     self._owned_ec_states = []
@@ -342,18 +360,7 @@ class Component(TreeNode):
                 if self.participating_ecs:
                     states = []
                     for ec in self.participating_ecs:
-                        if self._obj.is_alive(ec._obj):
-                            ec_state = ec.get_component_state(self._obj)
-                            if ec_state == RTC.ACTIVE_STATE:
-                                states.append(self.ACTIVE)
-                            elif ec_state == RTC.ERROR_STATE:
-                                states.append(self.ERROR)
-                            elif ec_state == RTC.INACTIVE_STATE:
-                                states.append(self.INACTIVE)
-                            else:
-                                states.append(self.UNKNOWN)
-                        else:
-                            states.append(self.CREATED)
+                        states.append(self._get_ec_state(ec))
                     self._participating_ec_states = states
                 else:
                     self._participating_ec_states = []
@@ -605,6 +612,21 @@ class Component(TreeNode):
         # Components cannot contain children.
         raise CannotHoldChildrenError
 
+    def _get_ec_state(self, ec):
+        # Get the state of this component in an EC and return the enum value.
+        if self._obj.is_alive(ec._obj):
+            ec_state = ec.get_component_state(self._obj)
+            if ec_state == RTC.ACTIVE_STATE:
+                return self.ACTIVE
+            elif ec_state == RTC.ERROR_STATE:
+                return self.ERROR
+            elif ec_state == RTC.INACTIVE_STATE:
+                return self.INACTIVE
+            else:
+                return self.UNKNOWN
+        else:
+            return self.CREATED
+
     def _parse_configuration(self):
         # Parse the component's configuration sets
         with self._mutex:
@@ -651,9 +673,17 @@ class Component(TreeNode):
             self._owned_ecs = None
             self._owned_ec_states = None
 
+    def _reset_owned_ec_states(self):
+        with self._mutex:
+            self._owned_ec_states = None
+
     def _reset_participating_ecs(self):
         with self._mutex:
             self._participating_ecs = None
+            self._participating_ec_states = None
+
+    def _reset_participating_ec_states(self):
+        with self._mutex:
             self._participating_ec_states = None
 
     def _reset_ports(self):
