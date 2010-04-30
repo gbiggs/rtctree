@@ -194,6 +194,8 @@ Component.activate_in_ec()  Activate the component in the execution context at
                             the given index. For most components, only one EC
                             is present and so the index should be 0.
 Component.deactivate_in_ec()  Deactivate the component in an execution context.
+Component.reset_in_ec()  Reset the component in an execution context.
+Component.state_in_ec()  Get the state in a specific execution context.
 Component.alive  Test if the component is alive.
 Component.owned_ecs  The list of execution contexts owned by the component.
 Component.participating_ecs  The list of execution contexts the component is
@@ -284,7 +286,7 @@ to perform most of the actions possible using RTSystemEditor.
 Changelog
 ---------
 
-2.0
+2.0:
 - Parse more information about execution contexts
 - Added the ability to use a provided ORB instead of creating one
 - Exposed the reparse_connections() method
@@ -292,4 +294,11 @@ Changelog
 - New API call to unbind a name from a context
 - Allow access to more CORBA objects
 - Catch more zombies
+- Handle unknown CORBA object types.
+- Handle the case of unknown port owners.
+- Added locks to make rtctree objects thread-safe.
+- Added API for forcing a re-parse of any object in the tree.
+- Cleaned up __init__ functions for proper inheritence handling.
+- New API call to get the state of a component in a specific EC.
+- New API call to update the state of a component in a specific EC.
 
