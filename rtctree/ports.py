@@ -410,6 +410,7 @@ class CorbaPort(Port):
     def _parse(self):
         # Parse the PortService object to build a port profile.
         with self._mutex:
+            super(CorbaPort, self)._parse()
             profile = self._obj.get_port_profile()
             self._properties = nvlist_to_dict(profile.properties)
 
