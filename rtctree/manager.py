@@ -50,9 +50,10 @@ class Manager(TreeNode):
     remove new components and managers to the tree at run time.
 
     '''
-    def __init__(self, name, parent, obj):
+    def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''
-        super(Manager, self).__init__(name, parent)
+        super(Manager, self).__init__(name=name, parent=parent, *args,
+                                      **kwargs)
         self._obj = obj
         self._parse()
 
@@ -76,11 +77,12 @@ class Manager(TreeNode):
         @raises FailedToCreateComponentError
 
         '''
-        if not self._obj.create_component(module_name):
-            raise FailedToCreateComponentError(module_name)
-        # The list of child components will have changed now, so it must be
-        # reparsed.
-        self._parse_component_children()
+        with self._mutex:
+            if not self._obj.create_component(module_name):
+                raise FailedToCreateComponentError(module_name)
+            # The list of child components will have changed now, so it must be
+            # reparsed.
+            self._parse_component_children()
 
     def delete_component(self, instance_name):
         '''Delete a component.
@@ -92,11 +94,12 @@ class Manager(TreeNode):
         @raises FailedToDeleteComponentError
 
         '''
-        if self._obj.delete_component(instance_name) != RTC.RTC_OK:
-            raise FailedToDeleteComponentError(instance_name)
-        # The list of child components will have changed now, so it must be
-        # reparsed.
-        self._parse_component_children()
+        with self._mutex:
+            if self._obj.delete_component(instance_name) != RTC.RTC_OK:
+                raise FailedToDeleteComponentError(instance_name)
+            # The list of child components will have changed now, so it must be
+            # reparsed.
+            self._parse_component_children()
 
     def load_module(self, path, init_func):
         '''Load a shared library.
@@ -110,8 +113,9 @@ class Manager(TreeNode):
 
         '''
         try:
-            if self._obj.load_module(path, init_func) != RTC.RTC_OK:
-                raise FailedToLoadModuleError(path)
+            with self._mutex:
+                if self._obj.load_module(path, init_func) != RTC.RTC_OK:
+                    raise FailedToLoadModuleError(path)
         except CORBA.UNKNOWN, e:
             if e.args[0] == UNKNOWN_UserException:
                 raise FailedToLoadModuleError(path, 'CORBA User Exception')
@@ -128,8 +132,9 @@ class Manager(TreeNode):
         @raises FailedToUnloadModuleError
 
         '''
-        if self._obj.unload_module(path) != RTC.RTC_OK:
-            raise FailedToUnloadModuleError(path)
+        with self._mutex:
+            if self._obj.unload_module(path) != RTC.RTC_OK:
+                raise FailedToUnloadModuleError(path)
 
     @property
     def components(self):
@@ -140,17 +145,19 @@ class Manager(TreeNode):
         the tree entries for the components.
 
         '''
-        if not self._components:
-            self._components = [c for c in self.children if c.is_component]
+        with self._mutex:
+            if not self._components:
+                self._components = [c for c in self.children if c.is_component]
         return self._components
 
     @property
     def factory_profiles(self):
         '''The factory profiles of all loaded modules.'''
-        if not self._factory_profiles:
-            self._factory_profiles = []
-            for fp in self._obj.get_factory_profiles():
-                self._factory_profiles.append(nvlist_to_dict(fp.properties))
+        with self._mutex:
+            if not self._factory_profiles:
+                self._factory_profiles = []
+                for fp in self._obj.get_factory_profiles():
+                    self._factory_profiles.append(nvlist_to_dict(fp.properties))
         return self._factory_profiles
 
     ##########################################################################
@@ -164,24 +171,27 @@ class Manager(TreeNode):
         @raises FailedToSetConfigurationError
 
         '''
-        if self._obj.set_configuration(param, value) != RTC.RTC_OK:
-            raise FailedToSetConfigurationError(param, value)
-        # Force a reparse of the configuration
-        self._configuration = None
+        with self._mutex:
+            if self._obj.set_configuration(param, value) != RTC.RTC_OK:
+                raise FailedToSetConfigurationError(param, value)
+            # Force a reparse of the configuration
+            self._configuration = None
 
     @property
     def configuration(self):
         '''The configuration dictionary of the manager.'''
-        if not self._configuration:
-            self._configuration = nvlist_to_dict(self._obj.get_configuration())
+        with self._mutex:
+            if not self._configuration:
+                self._configuration = nvlist_to_dict(self._obj.get_configuration())
         return self._configuration
 
     @property
     def profile(self):
         '''The manager's profile.'''
-        if not self._profile:
-            profile = self._obj.get_profile()
-            self._profile = nvlist_to_dict(profile.properties)
+        with self._mutex:
+            if not self._profile:
+                profile = self._obj.get_profile()
+                self._profile = nvlist_to_dict(profile.properties)
         return self._profile
 
     ##########################################################################
@@ -189,15 +199,18 @@ class Manager(TreeNode):
 
     def fork(self):
         '''Fork the manager.'''
-        self._obj.fork()
+        with self._mutex:
+            self._obj.fork()
 
     def shutdown(self):
         '''Shut down the manager.'''
-        self._obj.shutdown()
+        with self._mutex:
+            self._obj.shutdown()
 
     def restart(self):
         '''Restart the manager.'''
-        self._obj.restart()
+        with self._mutex:
+            self._obj.restart()
 
     ##########################################################################
     # Node functionality
@@ -216,7 +229,8 @@ class Manager(TreeNode):
     @property
     def object(self):
         '''The RTM::Manager object that this node contains.'''
-        return self._obj
+        with self._mutex:
+            return self._obj
 
     @property
     def is_master(self):
@@ -226,24 +240,27 @@ class Manager(TreeNode):
         managers are only present as children of other managers.
 
         '''
-        return self._obj.is_master()
+        with self._mutex:
+            return self._obj.is_master()
 
     @property
     def loadable_modules(self):
         '''The list of loadable module profile dictionaries.'''
-        if not self._loadable_modules:
-            self._loadable_modules = []
-            for mp in self._obj.get_loadable_modules():
-                self._loadable_modules.append(nvlist_to_dict(mp.properties))
+        with self._mutex:
+            if not self._loadable_modules:
+                self._loadable_modules = []
+                for mp in self._obj.get_loadable_modules():
+                    self._loadable_modules.append(nvlist_to_dict(mp.properties))
         return self._loadable_modules
 
     @property
     def loaded_modules(self):
         '''The list of loaded module profile dictionaries.'''
-        if not self._loaded_modules:
-            self._loaded_modules = []
-            for mp in self._obj.get_loaded_modules():
-                self._loaded_modules.append(nvlist_to_dict(mp.properties))
+        with self._mutex:
+            if not self._loaded_modules:
+                self._loaded_modules = []
+                for mp in self._obj.get_loaded_modules():
+                    self._loaded_modules.append(nvlist_to_dict(mp.properties))
         return self._loaded_modules
 
     @property
@@ -253,8 +270,9 @@ class Manager(TreeNode):
         If this manager is a master, this list will be empty.
 
         '''
-        if not self._masters:
-            raise NotImplementedError
+        with self._mutex:
+            if not self._masters:
+                raise NotImplementedError
         return self._masters
 
     @property
@@ -265,8 +283,9 @@ class Manager(TreeNode):
         that are of type @ref Manager.
 
         '''
-        if not self._slaves:
-            self._slaves = [c for c in self.children if c.is_manager]
+        with self._mutex:
+            if not self._slaves:
+                self._slaves = [c for c in self.children if c.is_manager]
         return self._slaves
 
     ##########################################################################
@@ -275,95 +294,104 @@ class Manager(TreeNode):
     def _add_master(self, new_master):
         # Add a new master to this manager. A slave manager can have multiple
         # masters. new_master should be a rtctree.manager.Manager object.
-        if self._obj.add_master_manager(new_master.object) != RTC.RTC_OK:
-            raise FailedToAddMasterManagerError
+        with self._mutex:
+            if self._obj.add_master_manager(new_master.object) != RTC.RTC_OK:
+                raise FailedToAddMasterManagerError
 
     def _add_slave(self, new_slave):
         # Add a slave to this manager. Master managers can hold slave managers,
         # which appear as child nodes in the tree. It will appear in the tree
         # as a new child node of this manager's node if the tree is reparsed.
         # new_slave should be a rtctree.manager.Manager object.
-        if self._obj.add_save_manager(new_slave.object) != RTC.RTC_OK:
-            raise FailedToAddSlaveManagerError(self.name, new_slave.name)
+        with self._mutex:
+            if self._obj.add_save_manager(new_slave.object) != RTC.RTC_OK:
+                raise FailedToAddSlaveManagerError(self.name, new_slave.name)
 
     def _parse(self):
         # Nearly everything is delay-parsed when it is first accessed.
-        self._components = None
-        self._configuration = None
-        self._profile = None
-        self._factory_profiles = None
-        self._loadable_modules = None
-        self._loaded_modules = None
-        self._masters = None
-        self._slaves = None
-        self._parse_children()
+        with self._mutex:
+            self._components = None
+            self._configuration = None
+            self._profile = None
+            self._factory_profiles = None
+            self._loadable_modules = None
+            self._loaded_modules = None
+            self._masters = None
+            self._slaves = None
+            self._parse_children()
 
     def _parse_children(self):
         # Parses child managers and components.
-        self._parse_component_children()
-        self._parse_manager_children()
+        with self._mutex:
+            self._parse_component_children()
+            self._parse_manager_children()
 
     def _parse_component_children(self):
         return
         # Parses the list returned by _obj.get_components into child nodes.
-        comps = self._obj.get_components()
-        for c in comps:
-            # Get the instance profile - this will be the node's name
-            profile = c.get_component_profile()
-            instance_name = profile.instance_name
-            # Create and store the new leaf node
-            leaf = Component(instance_name + '.rtc', self, c)
-            self._add_child(leaf)
+        with self._mutex:
+            comps = self._obj.get_components()
+            for c in comps:
+                # Get the instance profile - this will be the node's name
+                profile = c.get_component_profile()
+                instance_name = profile.instance_name
+                # Create and store the new leaf node
+                leaf = Component(instance_name + '.rtc', self, c)
+                self._add_child(leaf)
 
     def _parse_manager_children(self):
         return
         # Parses the list returned by _obj.get_slave_managers into child nodes.
-        mgrs = self._obj.get_slave_managers()
-        index = 0
-        for m in mgrs:
-            # Add each slave manager as a child node.
-            try:
-                props = nvlist_to_dict(m.get_profile().properties)
-            except CORBA.TRANSIENT, e:
-                if e.args[0] == TRANSIENT_ConnectFailed:
-                    print >>sys.stderr, '{0}: Warning: zombie slave of manager \
-{1} found'.format(sys.argv[0], self.name)
-                    continue
+        with self._mutex:
+            mgrs = self._obj.get_slave_managers()
+            index = 0
+            for m in mgrs:
+                # Add each slave manager as a child node.
+                try:
+                    props = nvlist_to_dict(m.get_profile().properties)
+                except CORBA.TRANSIENT, e:
+                    if e.args[0] == TRANSIENT_ConnectFailed:
+                        print >>sys.stderr, '{0}: Warning: zombie slave of \
+manager {1} found'.format(sys.argv[0], self.name)
+                        continue
+                    else:
+                        raise
+                if 'name' in props:
+                    name = props['name']
                 else:
-                    raise
-            if 'name' in props:
-                name = props['name']
-            else:
-                name = 'slave{0}'.format(index)
-                index += 1
-            leaf = Manager(name, self, m)
-            self._add_child(leaf)
+                    name = 'slave{0}'.format(index)
+                    index += 1
+                leaf = Manager(name, self, m)
+                self._add_child(leaf)
 
     def _remove_master(self, master):
         # Remove a new master from this manager. A slave manager can have multiple
         # masters. new_master should be a rtctree.manager.Manager object.
-        if self._obj.remove_master_manager(master.object) != RTC.RTC_OK:
-            raise FailedToRemoveMasterManagerError
+        with self._mutex:
+            if self._obj.remove_master_manager(master.object) != RTC.RTC_OK:
+                raise FailedToRemoveMasterManagerError
 
     def _remove_slave(self, slave):
         # Remove a slave from this manager. Master managers can hold slave
         # managers, which appear as child nodes in the tree. slave should be a
         # rtctree.manager.Manager object.
-        if self._obj.remove_slave_manager(slave.object) != RTC.RTC_OK:
-            raise FailedToRemoveSlaveManagerError(self.name, slave.name)
+        with self._mutex:
+            if self._obj.remove_slave_manager(slave.object) != RTC.RTC_OK:
+                raise FailedToRemoveSlaveManagerError(self.name, slave.name)
 
     def _set_parent(self, new_parent):
         # When setting the parent of a manager node, we need to tell wrapped
         # object that it has a new master. If our old parent was a master, then
         # we need to remove ourselves from that one.
         # Note that rtctree assumes a singly-linked hierarchy of managers.
-        if self.parent:
-            if self.parent.is_manager:
-                self.parent._remove_slave(self)
-                self._remove_master(self.parent)
-        self._add_master(new_parent)
-        new_parent._add_slave(self)
-        self.parent = new_parent
+        with self._mutex:
+            if self.parent:
+                if self.parent.is_manager:
+                    self.parent._remove_slave(self)
+                    self._remove_master(self.parent)
+            self._add_master(new_parent)
+            new_parent._add_slave(self)
+            self.parent = new_parent
 
 
 # vim: tw=79

@@ -44,16 +44,17 @@ class NameServer(Directory):
     root context.
 
     '''
-    def __init__(self, orb, address, parent, children=None):
+    def __init__(self, orb=None, address=None, parent=None,
+                 *args, **kwargs):
         '''Constructor.
 
         @param orb An orb object to use to connect to the name server.
         @param address The address of the name server. Used as the node name.
         @param parent The parent node of this node, if any.
-        @param children If the list of children is already known, put it here.
 
         '''
-        super(NameServer, self).__init__(address, parent, children)
+        super(NameServer, self).__init__(name=address, parent=parent,
+                                         *args, **kwargs)
         self._parse_server(address, orb)
 
     @property
@@ -64,37 +65,41 @@ class NameServer(Directory):
     @property
     def orb(self):
         '''The ORB used to access this name server.'''
-        return self._orb
+        with self._mutex:
+            return self._orb
 
     @property
     def ns_object(self):
         '''The object representing this name server.'''
-        return self._ns_obj
+        with self._mutex:
+            return self._ns_obj
 
     def _parse_server(self, address, orb):
         # Parse the name server.
-        self._address = address
-        self._orb = orb
-        root_context = self._connect_to_naming_service(address)
-        self._parse_context(root_context, orb)
+        with self._mutex:
+            self._address = address
+            self._orb = orb
+            root_context = self._connect_to_naming_service(address)
+            self._parse_context(root_context, orb)
 
     def _connect_to_naming_service(self, address):
         # Try to connect to a name server and get the root naming context.
-        self._full_address = 'corbaloc::{0}/NameService'.format(address)
-        try:
-            self._ns_obj = self._orb.string_to_object(self._full_address)
-        except CORBA.ORB.InvalidName:
-            raise InvalidServiceError(address)
-        try:
-            root_context = self._ns_obj._narrow(CosNaming.NamingContext)
-        except CORBA.TRANSIENT, e:
-            if e.args[0] == TRANSIENT_ConnectFailed:
+        with self._mutex:
+            self._full_address = 'corbaloc::{0}/NameService'.format(address)
+            try:
+                self._ns_obj = self._orb.string_to_object(self._full_address)
+            except CORBA.ORB.InvalidName:
                 raise InvalidServiceError(address)
-            else:
-                raise
-        if CORBA.is_nil(root_context):
-            raise FailedToNarrowRootNamingError(address)
-        return root_context
+            try:
+                root_context = self._ns_obj._narrow(CosNaming.NamingContext)
+            except CORBA.TRANSIENT, e:
+                if e.args[0] == TRANSIENT_ConnectFailed:
+                    raise InvalidServiceError(address)
+                else:
+                    raise
+            if CORBA.is_nil(root_context):
+                raise FailedToNarrowRootNamingError(address)
+            return root_context
 
 
 # vim: tw=79

@@ -92,7 +92,7 @@ class RTCTree(object):
     is considered to be bad.
 
     '''
-    def __init__(self, servers=None, paths=None, orb=None):
+    def __init__(self, servers=None, paths=None, orb=None, *args, **kwargs):
         '''Constructor.
 
         @param servers A list of servers to parse into the tree.
@@ -103,6 +103,7 @@ class RTCTree(object):
         @raises NonRootPathError
 
         '''
+        super(RTCTree, self).__init__()
         self._root = TreeNode('/', None)
         self._create_orb(orb)
         if servers:

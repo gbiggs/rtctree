@@ -23,8 +23,10 @@ __version__ = '$Revision: $'
 # $Source$
 
 
-from rtctree.utils import build_attr_string, nvlist_to_dict
 import RTC
+import threading
+
+from rtctree.utils import build_attr_string, nvlist_to_dict
 
 
 ##############################################################################
@@ -32,7 +34,7 @@ import RTC
 
 class ExecutionContext(object):
     '''An execution context, within which components may be executing.'''
-    def __init__(self, ec_obj, handle=None):
+    def __init__(self, ec_obj=None, handle=None, *args, **kwargs):
         '''Constructor.
 
         @param ec_obj The CORBA ExecutionContext object to wrap.
@@ -40,8 +42,10 @@ class ExecutionContext(object):
                       to uniquely identify it.
 
         '''
+        super(ExecutionContext, self).__init__(*args, **kwargs)
         self._obj = ec_obj._narrow(RTC.ExecutionContextService)
         self._handle = handle
+        self._mutex = threading.RLock()
         self._parse()
 
     def activate_component(self, comp_ref):
@@ -50,7 +54,8 @@ class ExecutionContext(object):
         @param comp_ref The CORBA LightweightRTObject to activate.
 
         '''
-        self._obj.activate_component(comp_ref)
+        with self._mutex:
+            self._obj.activate_component(comp_ref)
 
     def deactivate_component(self, comp_ref):
         '''Deactivate a component within this context.
@@ -58,7 +63,8 @@ class ExecutionContext(object):
         @param comp_ref The CORBA LightweightRTObject to deactivate.
 
         '''
-        self._obj.deactivate_component(comp_ref)
+        with self._mutex:
+            self._obj.deactivate_component(comp_ref)
 
     def reset_component(self, comp_ref):
         '''Reset a component within this context.
@@ -66,7 +72,8 @@ class ExecutionContext(object):
         @param comp_ref The CORBA LightweightRTObject to reset.
 
         '''
-        self._obj.reset_component(comp_ref)
+        with self._mutex:
+            self._obj.reset_component(comp_ref)
 
     def get_component_state(self, comp):
         '''Get the state of a component within this context.
@@ -75,7 +82,8 @@ class ExecutionContext(object):
         @return The component state, as a LifeCycleState value.
 
         '''
-        return self._obj.get_component_state(comp)
+        with self._mutex:
+            return self._obj.get_component_state(comp)
 
     def kind_as_string(self, add_colour=True):
         '''Get the type of this context as an optionally coloured string.
@@ -84,17 +92,27 @@ class ExecutionContext(object):
         @return A string describing the kind of execution context this is.
 
         '''
-        if self._kind == self.PERIODIC:
-            result = 'Periodic', ['reset']
-        elif self._kind == self.EVENT_DRIVEN:
-            result = 'Event-driven', ['reset']
-        elif self._kind == self.OTHER:
-            result = 'Other', ['reset']
+        with self._mutex:
+            if self._kind == self.PERIODIC:
+                result = 'Periodic', ['reset']
+            elif self._kind == self.EVENT_DRIVEN:
+                result = 'Event-driven', ['reset']
+            elif self._kind == self.OTHER:
+                result = 'Other', ['reset']
         if add_colour:
             return build_attr_string(result[1], supported=add_colour) + \
                     result[0] + build_attr_string('reset', supported=add_colour)
         else:
             return result[0]
+
+    def reparse(self):
+        '''Reparse this execution context.
+
+        This causes the execution context's state, profile and other
+        information to be reloaded from the remote object.
+
+        '''
+        self._parse()
 
     def running_as_string(self, add_colour=True):
         '''Get the state of this context as an optionally coloured string.
@@ -103,10 +121,11 @@ class ExecutionContext(object):
         @return A string describing this context's running state.
 
         '''
-        if self.running:
-            result = 'Running', ['bold', 'green']
-        else:
-            result = 'Stopped', ['reset']
+        with self._mutex:
+            if self.running:
+                result = 'Running', ['bold', 'green']
+            else:
+                result = 'Stopped', ['reset']
         if add_colour:
             return build_attr_string(result[1], supported=add_colour) + \
                     result[0] + build_attr_string('reset', supported=add_colour)
@@ -116,12 +135,14 @@ class ExecutionContext(object):
     @property
     def handle(self):
         '''The handle of this execution context.'''
-        return self._handle
+        with self._mutex:
+            return self._handle
 
     @property
     def kind(self):
         '''The kind of this execution context.'''
-        return self._kind
+        with self._mutex:
+            return self._kind
 
     @property
     def kind_string(self):
@@ -131,41 +152,48 @@ class ExecutionContext(object):
     @property
     def owner(self):
         '''The RTObject that owns this context.'''
-        return self._owner
+        with self._mutex:
+            return self._owner
 
     @property
     def owner_name(self):
         '''The name of the RTObject that owns this context.'''
-        if self._owner:
-            return self._owner.get_component_profile().instance_name
-        else:
-            return ''
+        with self._mutex:
+            if self._owner:
+                return self._owner.get_component_profile().instance_name
+            else:
+                return ''
 
     @property
     def participants(self):
         '''The list of RTObjects participating in this context.'''
-        return self._participants
+        with self._mutex:
+            return self._participants
 
     @property
     def participant_names(self):
         '''The names of the RTObjects participating in this context.'''
-        return [obj.get_component_profile().instance_name \
-                for obj in self._participants]
+        with self._mutex:
+            return [obj.get_component_profile().instance_name \
+                    for obj in self._participants]
 
     @property
     def properties(self):
         '''The execution context's extra properties dictionary.'''
-        return self._properties
+        with self._mutex:
+            return self._properties
 
     @property
     def rate(self):
         '''The execution rate of this execution context.'''
-        return self._rate
+        with self._mutex:
+            return self._rate
 
     @property
     def running(self):
         '''Is this execution context running?'''
-        return self._running
+        with self._mutex:
+            return self._running
 
     @property
     def running_string(self):
@@ -174,22 +202,23 @@ class ExecutionContext(object):
 
     def _parse(self):
         #Parse the ExecutionContext object.
-        if self._obj.is_running():
-            self._running = True
-        else:
-            self._running = False
+        with self._mutex:
+            if self._obj.is_running():
+                self._running = True
+            else:
+                self._running = False
 
-        profile = self._obj.get_profile()
-        self._rate = profile.rate
-        if profile.kind == RTC.PERIODIC:
-            self._kind = self.PERIODIC
-        elif profile.kind == RTC.EVENT_DRIVEN:
-            self._kind = self.EVENT_DRIVEN
-        else:
-            self._kind = self.OTHER
-        self._owner = profile.owner
-        self._participants = profile.participants
-        self._properties = nvlist_to_dict(profile.properties)
+            profile = self._obj.get_profile()
+            self._rate = profile.rate
+            if profile.kind == RTC.PERIODIC:
+                self._kind = self.PERIODIC
+            elif profile.kind == RTC.EVENT_DRIVEN:
+                self._kind = self.EVENT_DRIVEN
+            else:
+                self._kind = self.OTHER
+            self._owner = profile.owner
+            self._participants = profile.participants
+            self._properties = nvlist_to_dict(profile.properties)
 
     ## Constant for a periodic execution context.
     PERIODIC = 1
