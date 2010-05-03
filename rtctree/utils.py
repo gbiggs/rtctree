@@ -71,9 +71,6 @@ def build_attr_string(attrs, supported=True):
     attrs should be a list of keys into the term_attributes table.
 
     '''
-    if supported:
-        print 'build_attr_string:', supported
-        print extract_stack(limit=5)
     if not supported:
         return ''
     if type(attrs) == str:
