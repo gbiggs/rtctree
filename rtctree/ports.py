@@ -102,14 +102,16 @@ class Port(object):
         with self._mutex:
             if self.porttype == 'DataInPort' or self.porttype == 'DataOutPort':
                 for prop in props:
-                    if prop not in self.properties or \
-                            (props[prop] not in self.properties[prop] and \
-                             'Any' not in self.properties[prop]) or \
-                            prop not in dest.properties or \
-                            (props[prop] not in dest.properties[prop] and \
-                             'Any' not in dest.properties[prop]):
-                        # Cannot make the connection with the given properties
-                        raise IncompatibleDataPortConnectionPropsError
+                    if prop in self.properties:
+                        if props[prop] not in self.properties[prop] and \
+                                'Any' not in self.properties[prop]:
+                            # Invalid property selected
+                            raise IncompatibleDataPortConnectionPropsError
+                    if prop in dest.properties:
+                        if props[prop] not in dest.properties[prop] and \
+                                'Any' not in dest.properties[prop]:
+                            # Invalid property selected
+                            raise IncompatibleDataPortConnectionPropsError
             if not name:
                 name = self.name + '_' + dest.name
             ports = [self.object, dest.object]
