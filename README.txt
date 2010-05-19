@@ -27,17 +27,22 @@ Python 2.6. It will not function with an earlier version of Python. It has not
 been tested with Python 3 and it is likely that several changes will be
 necessary to make it function using this version of Python.
 
+For Ubuntu users, if you are using a version of Ubuntu prior to 9.04, you will
+need to install a suitable Python version by hand. You may want to consider
+upgrading to Ubuntu 9.04 or later (10.04 offers LTS).
+
 
 Installation
 ------------
 
 There are several methods of installation available:
 
-1. Download the source (either from the repository or a source archive),
-extract it somewhere, and run the commands from that directory.
+1. Download the source from either the repository (see "Repository," below) or
+a source archive, extract it somewhere, and run the commands from that
+directory.
 
-2. Download the source (either from the repository or a source archive),
-extract it somewhere, and use distutils to install it into your Python
+2. Download the source from either the repository (see "Repository," below) or
+a source archive, extract it somewhere, and install it into your Python
 distribution:
 
  a. Extract the source, e.g. to a directory /home/blag/src/rtctree
@@ -56,7 +61,7 @@ distribution:
 
 3. Use the Windows installer. This will perform the same job as running
    setup.py (see #2), but saves opening a command prompt. You may still need to
-   add paths to your environment variables.
+   add paths to your environment variables (see step c, above).
 
 
 Environment variables
@@ -65,9 +70,17 @@ Environment variables
 The following environment variables are used:
 
 RTCTREE_ORB_ARGS    A list of arguments, separated by semi-colons, to
-                    pass to the ORB when creating it.
-RTCTREE_NAMESERVERS A list of name server addresses, separated by
-                    semi-colons, to parse when creating the RTCTree.
+                    pass to the ORB when creating it. Optional.
+RTCTREE_NAMESERVERS A list of name server addresses, separated by semi-
+                    colons, to parse when creating the RTCTree. Each
+                    server in the list will be added to the tree. Optional.
+
+The only variable that should normally be set by the user is
+RTCTREE_NAMESERVERS. Set this to a list of name server addresses, separated by
+semi-colons, that you want rtcshell to interact with. For example, in a Bash
+shell, you can run the following:
+
+ $ export RTCTREE_NAMESERVERS=localhost;192.168.0.1:65346;example.com
 
 
 The RTC Tree
@@ -281,6 +294,18 @@ For further documentation, see the Doxygen-generated API documentation.
 
 For examples, see the rtcshell set of utilities. These illustrate using rtctree
 to perform most of the actions possible using RTSystemEditor.
+
+
+Repository
+----------
+
+The latest source is stored in a Git repository at github, available at
+http://github.com/gbiggs/rtctree. You can download it as a zip file or
+tarball by clicking the "Download Source" link in the top right of the page.
+Alternatively, use Git to clone the repository. This is better if you wish to
+contribute patches.
+
+ $ git clone git://github.com/gbiggs/rtctree.git
 
 
 Changelog

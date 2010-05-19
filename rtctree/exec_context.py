@@ -100,8 +100,8 @@ class ExecutionContext(object):
             elif self._kind == self.OTHER:
                 result = 'Other', ['reset']
         if add_colour:
-            return build_attr_string(result[1]) + result[0] + \
-                build_attr_string('reset')
+            return build_attr_string(result[1], supported=add_colour) + \
+                    result[0] + build_attr_string('reset', supported=add_colour)
         else:
             return result[0]
 
@@ -127,8 +127,8 @@ class ExecutionContext(object):
             else:
                 result = 'Stopped', ['reset']
         if add_colour:
-            return build_attr_string(result[1]) + result[0] + \
-                build_attr_string('reset')
+            return build_attr_string(result[1], supported=add_colour) + \
+                    result[0] + build_attr_string('reset', supported=add_colour)
         else:
             return result[0]
 

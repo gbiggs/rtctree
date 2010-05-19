@@ -26,6 +26,7 @@ __version__ = '$Revision: $'
 
 from omniORB import any
 import SDOPackage
+import sys
 
 
 ##############################################################################
@@ -61,6 +62,8 @@ term_attributes = {'reset': '00',
                    'bgwhite': '47',
                    }
 
+from traceback import extract_stack
+
 def build_attr_string(attrs, supported=True):
     '''Build a string that will turn any ANSI shell output the desired
     colour.
@@ -76,6 +79,12 @@ def build_attr_string(attrs, supported=True):
     for attr in attrs:
         result += term_attributes[attr] + ';'
     return result[:-1] + 'm'
+
+
+def colour_supported(term):
+    if sys.platform == 'win32':
+        return False
+    return term.isatty()
 
 
 def get_num_columns_and_rows(widths, gap_width, term_width):
