@@ -67,8 +67,8 @@ class TreeNode(object):
         '''Get a child node of this node, or this node, based on a path.
 
         @param path A list of path elements pointing to a node in the tree.
-                    For example, ['/', 'localhost', 'local.host_cxt']. The
-                    first element in this path should be this node's name.
+                    For example, ['/', 'localhost', 'dir.host']. The first
+                    element in this path should be this node's name.
         @return The node pointed to by @ref path, or None if the path does not
                 point to a node in the tree below this node.
 
@@ -88,8 +88,8 @@ class TreeNode(object):
         '''Check if a path exists below this node.
 
         @param path A list of path elements pointing to a node in the tree.
-                    For example, ['/', 'localhost', 'local.host_cxt']. The
-                    first element in this path should be this node's name.
+                    For example, ['/', 'localhost', 'dir.host']. The first
+                    element in this path should be this node's name.
         @return True if the path points to a node in the tree below this node,
                 or this node itself (for paths one element long). False
                 otherwise.

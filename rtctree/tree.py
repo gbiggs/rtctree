@@ -147,8 +147,8 @@ class RTCTree(object):
         '''Get a node by path.
 
         @param path A list of path elements pointing to a node in the tree.
-                    For example, ['/', 'localhost', 'local.host_cxt']. The
-                    first element in this path should be the root node's name.
+                    For example, ['/', 'localhost', 'dir.host']. The first
+                    element in this path should be the root node's name.
 
         '''
         return self._root.get_node(path)
@@ -157,8 +157,8 @@ class RTCTree(object):
         '''Check if the tree has a path.
 
         @param path A list of path elements pointing to a node in the tree.
-                    For example, ['/', 'localhost', 'local.host_cxt']. The
-                    first element in this path should be the root node's name.
+                    For example, ['/', 'localhost', 'dir.host']. The first
+                    element in this path should be the root node's name.
 
         '''
         return self._root.has_path(path)
