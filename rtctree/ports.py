@@ -208,11 +208,18 @@ class Port(object):
         '''
         return self.__class__.__name__
 
+    @property
+    def properties(self):
+        '''Properties of the port.'''
+        with self._mutex:
+            return self._properties
+
     def _parse(self):
         # Parse the PortService object to build a port profile.
         with self._mutex:
             profile = self._obj.get_port_profile()
             self._name = profile.name
+            self._properties = nvlist_to_dict(profile.properties)
             if self.owner:
                 prefix = self.owner.instance_name + '.'
                 if self._name.startswith(prefix):
@@ -275,18 +282,9 @@ class DataPort(Port):
             super(DataPort, self).connect(dest=dest, name=name, id=id,
                                           props=new_props)
 
-    @property
-    def properties(self):
-        '''Properties of the port.'''
-        with self._mutex:
-            return self._properties
-
     def _parse(self):
         # Parse the PortService object to build a port profile.
-        with self._mutex:
-            super(DataPort, self)._parse()
-            profile = self._obj.get_port_profile()
-            self._properties = nvlist_to_dict(profile.properties)
+        super(DataPort, self)._parse()
 
 
 class DataInPort(DataPort):
@@ -397,18 +395,9 @@ class CorbaPort(Port):
                                     for intf in profile.interfaces]
         return self._interfaces
 
-    @property
-    def properties(self):
-        '''Properties of the port.'''
-        with self._mutex:
-            return self._properties
-
     def _parse(self):
         # Parse the PortService object to build a port profile.
-        with self._mutex:
-            super(CorbaPort, self)._parse()
-            profile = self._obj.get_port_profile()
-            self._properties = nvlist_to_dict(profile.properties)
+        super(CorbaPort, self)._parse()
 
 
 ##############################################################################
