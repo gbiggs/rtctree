@@ -276,12 +276,6 @@ class DataPort(Port):
                                           props=new_props)
 
     @property
-    def data_type(self):
-        '''The port's data type constructor.'''
-        with self._mutex:
-            return self._data_type
-
-    @property
     def properties(self):
         '''Properties of the port.'''
         with self._mutex:
