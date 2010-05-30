@@ -114,7 +114,6 @@ class Port(object):
                             raise IncompatibleDataPortConnectionPropsError
             if not name:
                 name = self.name + '_' + dest.name
-            ports = [self.object, dest.object]
             props = dict_to_nvlist(props)
             profile = RTC.ConnectorProfile(name, id, [self._obj, dest._obj],
                                            props)
@@ -282,10 +281,6 @@ class DataPort(Port):
             super(DataPort, self).connect(dest=dest, name=name, id=id,
                                           props=new_props)
 
-    def _parse(self):
-        # Parse the PortService object to build a port profile.
-        super(DataPort, self)._parse()
-
 
 class DataInPort(DataPort):
     '''Specialisation of the DataPort class for input ports.
@@ -394,10 +389,6 @@ class CorbaPort(Port):
                 self._interfaces = [SvcInterface(intf) \
                                     for intf in profile.interfaces]
         return self._interfaces
-
-    def _parse(self):
-        # Parse the PortService object to build a port profile.
-        super(CorbaPort, self)._parse()
 
 
 ##############################################################################
