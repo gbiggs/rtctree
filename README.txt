@@ -38,10 +38,6 @@ Installation
 There are several methods of installation available:
 
 1. Download the source from either the repository (see "Repository," below) or
-a source archive, extract it somewhere, and run the commands from that
-directory.
-
-2. Download the source from either the repository (see "Repository," below) or
 a source archive, extract it somewhere, and install it into your Python
 distribution:
 
@@ -59,7 +55,7 @@ distribution:
     C:\Python26\Scripts\, respectively (assuming Python 2.6 installed in
     C:\Python26\).
 
-3. Use the Windows installer. This will perform the same job as running
+2. Use the Windows installer. This will perform the same job as running
    setup.py (see #2), but saves opening a command prompt. You may still need to
    add paths to your environment variables (see step c, above).
 
