@@ -2,7 +2,7 @@ rtctree
 ===============================================================================
 
 rtctree is a Python library providing an easy-to-use API for interacting with
-running RT Components and RTM-based systemsrunning on OpenRTM-aist-1.0. It
+running RT Components and RTM-based systems running on OpenRTM-aist-1.0. It
 allows developers to manage these systems from other programs without needing to
 learn the CORBA API. Components can be started, stopped, connected together,
 have their configuration changed, and so on.
@@ -121,9 +121,6 @@ Component objects store a variety of information about the component they
 represent. You can access the component's ports, configuration sets, and so on.
 Use these objects to change configuration values, connect ports to each other,
 start and stop components, etc.
-
-Managers currently are not usable with rtctree. They will be supported in a
-future release.
 
 All nodes in the tree also store the CORBA object reference to the object they
 represent. By accessing this object, you can call the IDL methods. If something
