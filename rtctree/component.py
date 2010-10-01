@@ -157,6 +157,18 @@ class Component(TreeNode):
     ###########################################################################
     # State management
 
+    def exit(self):
+        '''Stop the component's execution contexts and finalise it.
+
+        This will have flow-on effects to any other components using this
+        component's execution contexts and any child components.
+
+        @return The result of attempting to exit.
+
+        '''
+        with self._mutex:
+            return self._obj.exit()
+
     def activate_in_ec(self, ec_index):
         '''Activate this component in an execution context.
 
