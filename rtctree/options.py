@@ -13,18 +13,18 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: options.py
-
 Singleton containing option values.
 
 '''
 
-__version__ = '$Revision: $'
-# $Source$
 
 import sys
 
 from rtctree.exceptions import NoSuchOptionError
+
+
+##############################################################################
+## Options object
 
 class Options(object):
     def __new__(cls, *p, **k):

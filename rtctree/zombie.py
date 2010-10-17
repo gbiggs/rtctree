@@ -13,7 +13,7 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-Object representing an unknown node in the tree.
+Object representing a zombie node in the tree.
 
 '''
 
@@ -23,40 +23,37 @@ from rtctree.node import TreeNode
 
 
 ##############################################################################
-## Unknown node object
+## Zombie node object
 
-class Unknown(TreeNode):
-    '''Node representing an unknown object on a name server.
+class Zombie(TreeNode):
+    '''Node representing a zombie object on a name server.
 
-    Unknown nodes can occur below name server and directory nodes. They
-    cannot contain any children.
+    Zombie nodes can occur below name server and directory nodes. They
+    cannot contain any children. They do not contain a reference to a
+    CORBA object as they represent the lack of such an object under a
+    name still registered on the name server.
 
     '''
-    def __init__(self, name, parent, obj):
+    def __init__(self, name, parent):
         '''Constructor.
 
         @param name Name of this object (i.e. its entry in the path).
         @param parent The parent node of this node, if any.
-        @param obj The CORBA object to wrap.
 
         '''
-        super(Unknown, self).__init__(name, parent)
-        self._obj = obj
-
-    ###########################################################################
-    # Node functionality
+        super(Zombie, self).__init__(name, parent)
 
     @property
-    def object(self):
-        '''The CORBA object this object wraps.'''
-        with self._mutex:
-            return self._obj
+    def is_zombie(self):
+        '''Is this node a zombie?'''
+        return True
+
 
     ###########################################################################
     # Internal API
 
     def _add_child(self):
-        # Unknowns cannot contain children.
+        # Zombies cannot contain children.
         raise CannotHoldChildrenError
 
 

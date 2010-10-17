@@ -13,14 +13,9 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: nameserver.py
-
 Object representing a name server node in the tree.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 import CosNaming

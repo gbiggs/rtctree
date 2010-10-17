@@ -13,15 +13,10 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: rtctree.py
-
 Objects and functions used to build and store a tree representing a hierarchy
 of name servers, directories, managers and components.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 from omniORB import any

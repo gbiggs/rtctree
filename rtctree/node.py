@@ -13,18 +13,15 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: node.py
-
 Object representing a generic node in the tree.
 
 '''
 
-__version__ = '$Revision: $'
-# $Source$
 
 import threading
 
 from rtctree.exceptions import NotRelatedError
+
 
 ##############################################################################
 ## Base node object
@@ -206,6 +203,11 @@ class TreeNode(object):
     @property
     def is_nameserver(self):
         '''Is this node a name server (specialisation of directory nodes)?'''
+        return False
+
+    @property
+    def is_zombie(self):
+        '''Is this node a zombie?'''
         return False
 
     @property

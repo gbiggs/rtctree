@@ -13,15 +13,10 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: path.py
-
 Functions for parsing paths specifying name servers, directories, components,
 etc.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 from rtctree.exceptions import BadPathError

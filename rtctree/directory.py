@@ -13,14 +13,9 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: directory.py
-
 Object representing a directory node in the tree.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 import CosNaming
@@ -133,9 +128,7 @@ class Directory(TreeNode):
                         leaf = Manager(name, self, obj)
                     except CORBA.OBJECT_NOT_EXIST:
                         # Manager zombie
-                        print >>sys.stderr, '{0}: Warning: zombie manager \
-found: {1}'.format(sys.argv[0], name)
-                        return
+                        leaf = Zombie(name, self)
                     self._add_child(leaf)
                 elif binding.binding_name[0].kind == 'rtc':
                     name = URI.nameToString(binding.binding_name)
@@ -144,8 +137,7 @@ found: {1}'.format(sys.argv[0], name)
                         obj = obj._narrow(RTC.RTObject)
                     except CORBA.TRANSIENT, e:
                         if e.args[0] == TRANSIENT_ConnectFailed:
-                            print >>sys.stderr, '{0}: Warning: zombie \
-component {1} found under {2}'.format(sys.argv[0], name, self.name)
+                            self._add_child(Zombie(name, self)
                             return
                         else:
                             raise
@@ -153,9 +145,7 @@ component {1} found under {2}'.format(sys.argv[0], name, self.name)
                         leaf = Component(name, self, obj)
                     except CORBA.OBJECT_NOT_EXIST:
                         # Component zombie
-                        print >>sys.stderr, '{0}: Warning: zombie component \
-{1} found under {2}'.format(sys.argv[0], name, self.name)
-                        return
+                        leaf = Zombie(name, self)
                     self._add_child(leaf)
                 else:
                     # Unknown type - add a plain node
