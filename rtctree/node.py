@@ -159,6 +159,12 @@ class TreeNode(object):
             return self._children.values()
 
     @property
+    def children_names(self):
+        '''A list of the names of the child nodes of this node (if any).'''
+        with self._mutex:
+            return self._children.keys()
+
+    @property
     def depth(self):
         '''The depth of this node in the tree.
 

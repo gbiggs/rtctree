@@ -111,20 +111,20 @@ class RTCTree(object):
         self._root = TreeNode('/', None)
         self._create_orb(orb)
         if servers:
-            self._parse_name_servers(servers, filter)
+            self._parse_name_servers(servers, filter=filter)
         if paths:
             if type(paths[0]) == str:
                 if paths[0][0] != '/':
                     raise NonRootPathError(paths[0])
                 if len(paths) > 1:
-                    self.add_name_server(paths[1], filter)
+                    self.add_name_server(paths[1], filter=filter)
             else:
                 for p in paths:
                     if p[0] != '/':
                         raise NonRootPathError(p)
                     if len(p) > 1:
-                        self.add_name_server(p[1], filter)
-            self.load_servers_from_env()
+                        self.add_name_server(p[1], filter=filter)
+            self.load_servers_from_env(filter=filter)
         if not servers and not paths:
             self.load_servers_from_env(filter=filter)
 
@@ -256,9 +256,15 @@ class RTCTree(object):
     def _parse_name_servers(self, servers, filter=[]):
         # Parse a list of name servers.
         if type(servers) is str:
+            # Don't parse any servers already parsed
+            if servers in self._root.children_names:
+                return
             self._parse_name_server(servers, filter)
         else:
             for server in servers:
+                # Don't parse any servers already parsed
+                if server in self._root.children_names:
+                    return
                 self._parse_name_server(server, filter)
 
     def _parse_name_server(self, address, filter=[]):
