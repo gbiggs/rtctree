@@ -33,13 +33,14 @@ class TreeNode(object):
     class of this class.
 
     '''
-    def __init__(self, name=None, parent=None, children=None, *args,
-                 **kwargs):
+    def __init__(self, name=None, parent=None, children=None, filter=[],
+            *args, **kwargs):
         '''Constructor.
 
         @param name Name of this node (i.e. its entry in the path).
         @param parent The parent node of this node, if any.
         @param children If the list of children is already known, put it here.
+        @param filter A list of paths to filter by.
 
         '''
         super(TreeNode, self).__init__(*args, **kwargs)
@@ -203,6 +204,11 @@ class TreeNode(object):
     @property
     def is_nameserver(self):
         '''Is this node a name server (specialisation of directory nodes)?'''
+        return False
+
+    @property
+    def is_unknown(self):
+        '''Is this node unknown?'''
         return False
 
     @property

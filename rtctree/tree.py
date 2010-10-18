@@ -18,6 +18,7 @@ of name servers, directories, managers and components.
 
 '''
 
+from copy import deepcopy
 from omniORB import CORBA
 import os
 import sys
@@ -30,12 +31,13 @@ from rtctree.directory import Directory
 from rtctree.nameserver import NameServer
 from rtctree.manager import Manager
 from rtctree.component import Component
+from rtctree.utils import filtered, trim_filter
 
 
 ##############################################################################
 ## API functions
 
-def create_rtctree(servers=None, paths=None, orb=None):
+def create_rtctree(servers=None, paths=None, orb=None, filter=[]):
     '''Create an RTCTree object, catching various common errors and outputting
     a suitable error message for them.
 
@@ -46,7 +48,7 @@ def create_rtctree(servers=None, paths=None, orb=None):
 
     '''
     try:
-        tree = RTCTree(servers=servers, paths=paths, orb=orb)
+        tree = RTCTree(servers=servers, paths=paths, orb=orb, filter=filter)
     except InvalidServiceError, e:
         print >>sys.stderr, '{0}: Cannot access {1}: Invalid \
 service.'.format(sys.argv[0], e[0])
@@ -87,14 +89,21 @@ class RTCTree(object):
     is considered to be bad.
 
     '''
-    def __init__(self, servers=None, paths=None, orb=None, *args, **kwargs):
+    def __init__(self, servers=None, paths=None, orb=None, filter=[], *args,
+            **kwargs):
         '''Constructor.
 
         @param servers A list of servers to parse into the tree.
-        @param paths A list of paths from which to get servers to parse into
-                     the tree.
-        @param orb If not None, the specified ORB will be used. If None, the
-                   tree object will create its own ORB. 
+        @param paths A list of paths from which to get servers to parse
+                     into the tree.
+        @param orb If not None, the specified ORB will be used. If None,
+                   the tree object will create its own ORB.
+        @param filter A list of paths (each a list of strings).
+                      If not empty, then only objects in the paths will
+                      be parsed, to increase speed. If the tail of a
+                      path is a directory, that entire directory will be
+                      parsed. Directories that are not the tail will
+                      only have the next entry in the path parsed.
         @raises NonRootPathError
 
         '''
@@ -102,22 +111,22 @@ class RTCTree(object):
         self._root = TreeNode('/', None)
         self._create_orb(orb)
         if servers:
-            self._parse_name_servers(servers)
+            self._parse_name_servers(servers, filter)
         if paths:
             if type(paths[0]) == str:
                 if paths[0][0] != '/':
                     raise NonRootPathError(paths[0])
                 if len(paths) > 1:
-                    self.add_name_server(paths[1])
+                    self.add_name_server(paths[1], filter)
             else:
                 for p in paths:
                     if p[0] != '/':
                         raise NonRootPathError(p)
                     if len(p) > 1:
-                        self.add_name_server(p[1])
+                        self.add_name_server(p[1], filter)
             self.load_servers_from_env()
         if not servers and not paths:
-            self.load_servers_from_env()
+            self.load_servers_from_env(filter=filter)
 
     def __del__(self):
         # Destructor to ensure the ORB shuts down correctly.
@@ -129,14 +138,20 @@ class RTCTree(object):
         # Get a (potentially very large) string describing the tree.
         return str(self._root)
 
-    def add_name_server(self, server):
+    def add_name_server(self, server, filter=[]):
         '''Parse a name server, adding its contents to the tree.
 
-        @param server The address of the name server, in standard address
-                      format. e.g. 'localhost', 'localhost:2809', '59.7.0.1'.
+        @param server The address of the name server, in standard
+                      address format. e.g. 'localhost',
+                      'localhost:2809', '59.7.0.1'.
+        @param filter Restrict the parsed objects to only those in this
+                      path. For example, setting filter to [['/',
+                      'localhost', 'host.cxt', 'comp1.rtc']] will
+                      prevent 'comp2.rtc' in the same naming context
+                      from being parsed.
 
         '''
-        self._parse_name_server(server)
+        self._parse_name_server(server, filter)
 
     def get_node(self, path):
         '''Get a node by path.
@@ -184,6 +199,16 @@ class RTCTree(object):
         node = self.get_node(path)
         return node.is_nameserver
 
+    def is_unknown(self, path):
+        '''Is the node pointed to by @ref path an unknown object?'''
+        node = self.get_node(path)
+        return node.is_unknown
+
+    def is_zombie(self, path):
+        '''Is the node pointed to by @ref path a zombie object?'''
+        node = self.get_node(path)
+        return node.is_zombie
+
     def iterate(self, func, args=None, filter=[]):
         '''Call a function on the root node, and recursively all its children.
 
@@ -204,7 +229,7 @@ class RTCTree(object):
         '''
         return self._root.iterate(func, args, filter)
 
-    def load_servers_from_env(self):
+    def load_servers_from_env(self, filter=[]):
         '''Load the name servers environment variable and parse each server in
         the list.
 
@@ -212,7 +237,7 @@ class RTCTree(object):
         if NAMESERVERS_ENV_VAR in os.environ:
             servers = [s for s in os.environ[NAMESERVERS_ENV_VAR].split(';') \
                          if s]
-            self._parse_name_servers(servers)
+            self._parse_name_servers(servers, filter)
 
     def _create_orb(self, orb=None):
         # Create the ORB, optionally checking the environment variable for
@@ -228,18 +253,20 @@ class RTCTree(object):
             self._orb = CORBA.ORB_init(orb_args)
             self._orb_is_mine = True
 
-    def _parse_name_servers(self, servers):
+    def _parse_name_servers(self, servers, filter=[]):
         # Parse a list of name servers.
         if type(servers) is str:
-            self._parse_name_server(servers)
+            self._parse_name_server(servers, filter)
         else:
             for server in servers:
-                self._parse_name_server(server)
+                self._parse_name_server(server, filter)
 
-    def _parse_name_server(self, address):
+    def _parse_name_server(self, address, filter=[]):
         # Parse a single name server and add it to the root node.
-        new_ns_node = NameServer(self._orb, address, self._root)
-        self._root._add_child(new_ns_node)
+        if not filtered(['/', address], filter):
+            new_ns_node = NameServer(self._orb, address, self._root,
+                    trim_filter(deepcopy(filter), 2))
+            self._root._add_child(new_ns_node)
 
 
 # vim: tw=79

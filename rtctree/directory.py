@@ -18,6 +18,7 @@ Object representing a directory node in the tree.
 '''
 
 
+from copy import deepcopy
 import CosNaming
 from omniORB import URI, CORBA, TRANSIENT_ConnectFailed
 import sys
@@ -28,6 +29,8 @@ from rtctree.manager import Manager
 from rtctree.node import TreeNode
 from rtctree.options import Options
 from rtctree.unknown import Unknown
+from rtctree.zombie import Zombie
+from rtctree.utils import filtered, trim_filter
 import RTC
 import RTM
 
@@ -44,10 +47,11 @@ class Directory(TreeNode):
     it represents the root context of a name server.
 
     '''
-    def __init__(self, name=None, parent=None, children=None, *args, **kwargs):
+    def __init__(self, name=None, parent=None, children=None, filter=[], *args,
+            **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''
         super(Directory, self).__init__(name=name, parent=parent,
-                                        children=children, *args, **kwargs)
+                children=children, filter=filter, *args, **kwargs)
 
     def reparse(self):
         '''Reparse all children of this directory.
@@ -92,7 +96,7 @@ class Directory(TreeNode):
         '''Is this node a directory?'''
         return True
 
-    def _parse_context(self, context, orb):
+    def _parse_context(self, context, orb, filter=[]):
         with self._mutex:
             # Parse a naming context to fill in the children.
             self._context = context
@@ -101,19 +105,23 @@ class Directory(TreeNode):
                                         get_option('max_bindings'))
             for binding in bindings:
                 # Process the bindings that are within max_bindings
-                self._process_binding(binding, orb)
+                self._process_binding(binding, orb, filter)
             if bindings_it:
                 # Handle the iterator containing the remaining bindings
                 remaining, bindings = bindings_it[1].next_n(Options().\
                                             get_option('max_bindings'))
                 while remaining:
                     for binding in bindings:
-                        self._process_binding(binding, orb)
+                        self._process_binding(binding, orb, filter)
                     remaining, binding = bindings_it[1].next_n(Options().\
                                                 get_option('max_bindings'))
                 bindings_it.destroy()
 
-    def _process_binding(self, binding, orb):
+    def _process_binding(self, binding, orb, filter):
+        if filtered([URI.nameToString(binding.binding_name)], filter):
+            # Do not pass anything which does not pass the filter
+            return
+        trimmed_filter = trim_filter(deepcopy(filter))
         with self._mutex:
             # Process a binding, creating the correct child type for it and
             # adding that child to this node's children.
@@ -137,7 +145,7 @@ class Directory(TreeNode):
                         obj = obj._narrow(RTC.RTObject)
                     except CORBA.TRANSIENT, e:
                         if e.args[0] == TRANSIENT_ConnectFailed:
-                            self._add_child(Zombie(name, self)
+                            self._add_child(Zombie(name, self))
                             return
                         else:
                             raise
@@ -156,10 +164,11 @@ class Directory(TreeNode):
             else:
                 # This is a context, and therefore a subdirectory.
                 subdir_name = URI.nameToString(binding.binding_name)
-                subdir = Directory(subdir_name, self)
+                subdir = Directory(subdir_name, self, filter=trimmed_filter)
                 subdir_context = self._context.resolve(binding.binding_name)
                 subdir_context = subdir_context._narrow(CosNaming.NamingContext)
-                subdir._parse_context(subdir_context, orb)
+                subdir._parse_context(subdir_context, orb,
+                        filter=trimmed_filter)
                 self._add_child(subdir)
 
 

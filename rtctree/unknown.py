@@ -47,6 +47,11 @@ class Unknown(TreeNode):
     # Node functionality
 
     @property
+    def is_unknown(self):
+        '''Is this node unknown?'''
+        return True
+
+    @property
     def object(self):
         '''The CORBA object this object wraps.'''
         with self._mutex:
