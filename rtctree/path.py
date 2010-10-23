@@ -92,5 +92,25 @@ def get_port(path):
         raise BadPathError(path)
 
 
+def format_path(path):
+    '''Formats a path as a string, placing / between each component.
+
+    @param path A path in rtctree format, as a tuple with the port name as the
+                second component.
+
+    '''
+    if path[1]:
+        port = ':' + path[1]
+    else:
+        port = ''
+    if path[0][0] == '/':
+        starter = '/'
+        path = path[0][1:]
+    else:
+        starter = ''
+        path = path[0]
+    return starter + '/'.join(path) + port
+
+
 # vim: tw=79
 
