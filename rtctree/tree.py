@@ -47,25 +47,7 @@ def create_rtctree(servers=None, paths=None, orb=None, filter=[]):
     @returns An instance of RTCTree.
 
     '''
-    try:
-        tree = RTCTree(servers=servers, paths=paths, orb=orb, filter=filter)
-    except InvalidServiceError, e:
-        print >>sys.stderr, '{0}: Cannot access {1}: Invalid \
-service.'.format(sys.argv[0], e[0])
-        return None
-    except FailedToNarrowRootNamingError, e:
-        print >>sys.stderr, '{0}: Cannot access {1}: CORBA error narrowing \
-root naming context.'.format(sys.argv[0], e)
-        return None
-    except NonRootPathError, e:
-        print >>sys.stderr, '{0}: Cannot access {1}: No such directory or \
-object.'.format(sys.argv[0], paths)
-        return None
-    except RtcTreeError, e:
-        print >>sys.stderr, '{0}: Unknown error occured: \
-{1}'.format(sys.argv[0], e)
-        return None
-    return tree
+    return RTCTree(servers=servers, paths=paths, orb=orb, filter=filter)
 
 
 ##############################################################################
@@ -238,6 +220,27 @@ class RTCTree(object):
             servers = [s for s in os.environ[NAMESERVERS_ENV_VAR].split(';') \
                          if s]
             self._parse_name_servers(servers, filter)
+
+    def give_away_orb(self):
+        '''Releases ownership of an ORB created by the tree.
+
+        This will prevent the ORB being destroyed when the tree is.
+
+        '''
+        self._orb_is_mine = False
+
+    def own_orb(self):
+        '''Claims ownership of an ORB created elsewhere.
+
+        This will cause the ORB to be destroyed when the tree is.
+
+        '''
+        self._orb_is_mine = True
+
+    @property
+    def orb(self):
+        '''The reference to the ORB held by this tree.'''
+        return self._orb
 
     def _create_orb(self, orb=None):
         # Create the ORB, optionally checking the environment variable for
