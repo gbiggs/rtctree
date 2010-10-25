@@ -13,14 +13,10 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: manager.py
-
 Object representing a manager node in the tree.
 
 '''
 
-__version__ = '$Revision: $'
-# $Source$
 
 from omniORB import CORBA, TRANSIENT_ConnectFailed, UNKNOWN_UserException
 import sys

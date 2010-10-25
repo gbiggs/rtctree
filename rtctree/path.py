@@ -13,15 +13,10 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: path.py
-
 Functions for parsing paths specifying name servers, directories, components,
 etc.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 from rtctree.exceptions import BadPathError
@@ -95,6 +90,26 @@ def get_port(path):
         return split_path[0], split_path[1]
     else:
         raise BadPathError(path)
+
+
+def format_path(path):
+    '''Formats a path as a string, placing / between each component.
+
+    @param path A path in rtctree format, as a tuple with the port name as the
+                second component.
+
+    '''
+    if path[1]:
+        port = ':' + path[1]
+    else:
+        port = ''
+    if path[0][0] == '/':
+        starter = '/'
+        path = path[0][1:]
+    else:
+        starter = ''
+        path = path[0]
+    return starter + '/'.join(path) + port
 
 
 # vim: tw=79

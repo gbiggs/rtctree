@@ -13,14 +13,9 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: component.py
-
 Object representing a component node in the tree.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 from rtctree.config_set import ConfigurationSet
@@ -213,6 +208,16 @@ class Component(TreeNode):
                 ec = self.owned_ecs[ec_index]
             ec.deactivate_component(self._obj)
 
+    def exit(self):
+        '''Make a component exit.
+
+        This function will make the component exit, shutting down its CORBA
+        object in the process. It will not remove the node from the tree; a
+        reparse is necessary to do that.
+
+        '''
+        self._obj.exit()
+
     def get_ec_index(self, ec_handle):
         '''Get the index of the execution context with the given handle.
 
@@ -357,8 +362,8 @@ class Component(TreeNode):
         with self._mutex:
             if not self._owned_ecs:
                 self._owned_ecs = [ExecutionContext(ec,
-                                   self._obj.get_context_handle(ec)) \
-                                   for ec in self._obj.get_owned_contexts()]
+                    self._obj.get_context_handle(ec)) \
+                    for ec in self._obj.get_owned_contexts()]
         return self._owned_ecs
 
     @property

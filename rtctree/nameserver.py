@@ -13,14 +13,9 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: nameserver.py
-
 Object representing a name server node in the tree.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 import CosNaming
@@ -44,18 +39,19 @@ class NameServer(Directory):
     root context.
 
     '''
-    def __init__(self, orb=None, address=None, parent=None,
+    def __init__(self, orb=None, address=None, parent=None, filter=[],
                  *args, **kwargs):
         '''Constructor.
 
         @param orb An orb object to use to connect to the name server.
         @param address The address of the name server. Used as the node name.
         @param parent The parent node of this node, if any.
+        @param filter A list of paths to filter by.
 
         '''
         super(NameServer, self).__init__(name=address, parent=parent,
-                                         *args, **kwargs)
-        self._parse_server(address, orb)
+                filter=filter, *args, **kwargs)
+        self._parse_server(address, orb, filter)
 
     @property
     def is_nameserver(self):
@@ -74,13 +70,13 @@ class NameServer(Directory):
         with self._mutex:
             return self._ns_obj
 
-    def _parse_server(self, address, orb):
+    def _parse_server(self, address, orb, filter=[]):
         # Parse the name server.
         with self._mutex:
             self._address = address
             self._orb = orb
             root_context = self._connect_to_naming_service(address)
-            self._parse_context(root_context, orb)
+            self._parse_context(root_context, orb, filter)
 
     def _connect_to_naming_service(self, address):
         # Try to connect to a name server and get the root naming context.

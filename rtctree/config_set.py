@@ -13,14 +13,10 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: config_set.py
-
 Object representing a configuration set.
 
 '''
 
-__version__ = '$Revision: $'
-# $Source$
 
 from rtctree.utils import dict_to_nvlist
 

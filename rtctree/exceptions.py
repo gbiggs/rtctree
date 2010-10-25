@@ -13,14 +13,9 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: exceptions.py
-
 General exception classes.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 import rtctree
@@ -62,21 +57,26 @@ class ReturnCodeError(RtcTreeError):
 
 class InvalidServiceError(RtcTreeError):
     '''Could not connect to a CORBA service at an address.'''
-    pass
+    def __str__(self):
+        return 'Invalid CORBA naming service: {0}'.format(self.args[0])
 
 
 class FailedToNarrowRootNamingError(RtcTreeError):
     '''Failed to narrow the root naming context of a name server.'''
-    pass
+    def __str__(self):
+        return 'Failed to narrow root naming context {0}'.format(self.args[0])
 
 
 class NonRootPathError(RtcTreeError):
     '''A path did not begin with '/'.'''
-    pass
+    def __str__(self):
+        return 'Path does not start at root: {0}'.format(self.args[0])
+
 
 class CannotHoldChildrenError(RtcTreeError):
     '''Tried to add a child to a node that cannot hold children.'''
-    pass
+    def __str__(self):
+        return 'Node cannot hold children.'
 
 
 class BadECIndexError(RtcTreeError):
@@ -84,104 +84,140 @@ class BadECIndexError(RtcTreeError):
     participating contexts.
 
     '''
-    pass
+    def __str__(self):
+        return 'Bad execution context index: {0}'.format(self.args[0])
 
 
 class WrongPortTypeError(RtcTreeError):
     '''Tried to connect two ports of incompatible type.'''
-    pass
+    def __str__(self):
+        return 'Wrong port type.'
 
 
 class IncompatibleDataPortConnectionPropsError(RtcTreeError):
-    '''Given incompatible properties for a connection between two data
-    ports.
-
-    '''
-    pass
+    '''Given incompatible properties for a connection between two data ports.'''
+    def __str__(self):
+        return 'Incompatible connection properties.'
 
 
 class FailedToConnectError(ReturnCodeError):
     '''Failed to make a connection between two ports.'''
-    pass
+    def __str__(self):
+        return 'Failed to make connection: {0}'.format(self.args[0])
 
 
 class MismatchedInterfacesError(RtcTreeError):
     '''Interfaces between two service ports do not match type.'''
-    pass
+    def __str__(self):
+        return 'Interfaces do not match.'
 
 
 class MismatchedPolarityError(RtcTreeError):
     '''Interfaces between two service ports do not match polarity.'''
-    pass
+    def __str__(self):
+        return 'Polarities do not match.'
 
 
 class NotConnectedError(RtcTreeError):
     '''A connection is not connected.'''
-    pass
+    def __str__(self):
+        return 'Not connected.'
 
 
 class NoSuchConfSetError(RtcTreeError):
     '''Attempted to access a configuration set that doesn't exist.'''
-    pass
+    def __str__(self):
+        return 'No such configuration set: {0}'.format(self.args[0])
 
 
 class NoSuchConfParamError(RtcTreeError):
     '''Attempted to access a configuration parameter that doesn't exist.'''
-    pass
+    def __str__(self):
+        return 'No such configuration parameter: {0}'.format(self.args[0])
 
 
 class NoSuchOptionError(RtcTreeError):
     '''The requested option has not been set.'''
-    pass
+    def __str__(self):
+        return 'No such option: {0}'.format(self.args[0])
 
 
 class BadPathError(RtcTreeError):
     '''Error indicating an invalid path.'''
-    pass
+    def __str__(self):
+        return 'Bad path: {0}'.format(self.args[0])
+
 
 class ManagerError(RtcTreeError):
     '''Base error type for errors involving managers.'''
+    def __str__(self):
+        return 'Unknown manager error'
+
 
 class FailedToLoadModuleError(ManagerError):
     '''Error loading a shared library into a manager.'''
-    pass
+    def __str__(self):
+        if len(self.args) == 1:
+            return 'Failed to load module: {0}'.format(self.args[0])
+        else:
+            return 'Failed to load module: {0}'.format(self.args)
+
 
 class FailedToUnloadModuleError(ManagerError):
     '''Error unloading a shared library from a manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to unload module: {0}'.format(self.args[0])
+
 
 class FailedToCreateComponentError(ManagerError):
     '''Error creating a component out of a shared library in a manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to create component: {0}'.format(self.args[0])
+
 
 class FailedToDeleteComponentError(ManagerError):
     '''Error deleting a component from a manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to delete component: {0}'.format(self.args[0])
+
 
 class FailedToSetConfigurationError(ManagerError):
     '''Error setting a manager configuration parameter.'''
-    pass
+    def __str__(self):
+        return 'Failed to set configuration: {0}'.format(self.args[0])
+
 
 class FailedToAddMasterManagerError(ManagerError):
     '''Error when adding a master manager to another manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to add master manager.'
+
 
 class FailedToRemoveMasterManagerError(ManagerError):
     '''Error when removing a master manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to remove master manager.'
+
 
 class FailedToAddSlaveManagerError(ManagerError):
     '''Error when adding a slave manager to another manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to add slave manager: {0}'.format(self.args[1])
+
 
 class FailedToRemoveSlaveManagerError(ManagerError):
     '''Error when removing a slave manager.'''
-    pass
+    def __str__(self):
+        return 'Failed to remove slave manager: {0}'.format(self.args[1])
+
 
 class NotRelatedError(RtcTreeError):
     '''Tried to manupulate the relationship between two nodes that are not
     parent and child.'''
-    pass
+    def __str__(self):
+        return 'Nodes are not related: {0}, {1}'.format(self.args[0],
+                self.args[1])
+
 
 
 # vim: tw=79

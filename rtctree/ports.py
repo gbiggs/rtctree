@@ -22,9 +22,6 @@ create the correct type of port object automatically.
 
 '''
 
-__version__ = '$Revision: $'
-# $Source$
-
 
 import RTC
 import threading

@@ -13,15 +13,10 @@ Copyright (C) 2009-2010
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-File: rtctree.py
-
 Objects and functions used to build and store a tree representing a hierarchy
 of name servers, directories, managers and components.
 
 '''
-
-__version__ = '$Revision: $'
-# $Source$
 
 
 from omniORB import any
@@ -177,6 +172,36 @@ def nvlist_to_dict(nvlist):
     for item in nvlist :
         result[item.name] = item.value.value()
     return result
+
+
+def filtered(path, filter):
+    '''Check if a path is removed by a filter.
+
+    Check if a path is in the provided set of paths, @ref filter. If
+    none of the paths in filter begin with @ref path, then True is
+    returned to indicate that the path is filtered out. If @ref path is
+    longer than the filter, and starts with the filter, it is
+    considered unfiltered (all paths below a filter are unfiltered).
+
+    An empty filter ([]) is treated as not filtering any.
+
+    '''
+    if not filter:
+        return False
+    for p in filter:
+        if len(path) > len(p):
+            if path[:len(p)] == p:
+                return False
+        else:
+            if p[:len(path)] == path:
+                return False
+    return True
+
+
+def trim_filter(filter, levels=1):
+    '''Trim @ref levels levels from the front of each path in @filter.'''
+    trimmed = [f[levels:] for f in filter]
+    return [f for f in trimmed if f]
 
 
 # vim: tw=79
