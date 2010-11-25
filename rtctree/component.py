@@ -150,6 +150,15 @@ class Component(TreeNode):
             return self._version
 
     ###########################################################################
+    # Composite component information
+
+    @property
+    def is_composite(self):
+        '''Is the component a composite component.'''
+        with self._mutex:
+            return self._obj.get_owned_organizations() != []
+
+    ###########################################################################
     # State management
 
     def exit(self):
