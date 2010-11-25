@@ -137,6 +137,9 @@ class Directory(TreeNode):
                     except CORBA.OBJECT_NOT_EXIST:
                         # Manager zombie
                         leaf = Zombie(name, self)
+                    except CORBA.TRANSIENT:
+                        # Manager zombie
+                        leaf = Zombie(name, self)
                     self._add_child(leaf)
                 elif binding.binding_name[0].kind == 'rtc':
                     name = URI.nameToString(binding.binding_name)

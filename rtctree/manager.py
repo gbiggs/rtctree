@@ -345,8 +345,9 @@ class Manager(TreeNode):
                     props = nvlist_to_dict(m.get_profile().properties)
                 except CORBA.TRANSIENT, e:
                     if e.args[0] == TRANSIENT_ConnectFailed:
-                        print >>sys.stderr, '{0}: Warning: zombie slave of \
-manager {1} found'.format(sys.argv[0], self.name)
+                        print >>sys.stderr, '{0}: Warning: zombie slave of '\
+                                'manager {1} found'.format(sys.argv[0],
+                                        self.name)
                         continue
                     else:
                         raise
