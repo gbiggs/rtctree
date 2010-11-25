@@ -153,10 +153,93 @@ class Component(TreeNode):
     # Composite component information
 
     @property
+    def composite_parent(self):
+        '''The parent component in the composition.
+
+        None if this component is not a member of a composition.
+
+        '''
+        return None
+
+    @property
     def is_composite(self):
         '''Is the component a composite component.'''
+        return self._obj.get_owned_organizations() != []
+
+    @property
+    def is_composite_member(self):
+        '''Is the component a member of a composite component.'''
+        return self._obj.get_organizations() != []
+
+    @property
+    def members(self):
+        '''Member components if this component is composite.'''
         with self._mutex:
-            return self._obj.get_owned_organizations() != []
+            if not self._members:
+                self._members = []
+        return self._members
+
+    @property
+    def orgs(self):
+        '''The organisations of this composition.'''
+        class Org:
+            def __init__(self, sdo_id, org_id, members):
+                self.sdo_id = sdo_id
+                self.org_id = org_id
+                self.members = members
+
+        with self._mutex:
+            if not self._orgs:
+                for org in self._obj.get_owned_organizations():
+                    owner = org.get_owner()
+                    if owner:
+                        sdo_id = owner._narrow(SDOPackage.SDO).get_sdo_id()
+                    else:
+                        sdo_id = ''
+                    org_id = org.get_organization_id()
+                    members = [m.get_sdo_id() for m in org.get_members()]
+                    self._orgs.append(Org(sdo_id, org_id, members))
+        return self._orgs
+
+    @property
+    def org_ids(self):
+        '''The organisation IDs of this composition.'''
+        return [sdo.get_organization_id() for sdo in \
+                self._obj.get_owned_organizations()]
+
+    @property
+    def parent_org_ids(self):
+        '''The organisation IDs of the compositions this RTC belongs to.'''
+        return [sdo.get_organization_id() for sdo in \
+                self._obj.get_organizations() if sdo]
+
+    @property
+    def parent_org_sdo_ids(self):
+        '''The SDO IDs of the compositions this RTC belongs to.'''
+        return [sdo.get_owner()._narrow(SDOPackage.SDO).get_sdo_id() \
+                for sdo in self._obj.get_organizations() if sdo]
+
+    @property
+    def parent_orgs(self):
+        '''The organisations this RTC belongs to.'''
+        class ParentOrg:
+            def __init__(self, sdo_id, org_id):
+                self.sdo_id = sdo_id
+                self.org_id = org_id
+
+        with self._mutex:
+            if not self._parent_orgs:
+                for sdo in self._obj.get_organizations():
+                    if not sdo:
+                        continue
+                    owner = sdo.get_owner()
+                    if owner:
+                        sdo_id = owner._narrow(SDOPackage.SDO).get_sdo_id()
+                    else:
+                        sdo_id = ''
+                    org_id = sdo.get_organization_id()
+                    self._parent_orgs.append(ParentOrg(sdo_id, org_id))
+        return self._parent_orgs
 
     ###########################################################################
     # State management
@@ -693,6 +776,7 @@ class Component(TreeNode):
         self._reset_participating_ecs()
         self._reset_ports()
         self._reset_conf_sets()
+        self._reset_composite()
 
     def _reset_owned_ecs(self):
         with self._mutex:
@@ -715,6 +799,11 @@ class Component(TreeNode):
     def _reset_ports(self):
         with self._mutex:
             self._ports = None
+
+    def _reset_composite(self):
+        with self._mutex:
+            self._orgs = []
+            self._parent_orgs = []
 
     ## Constant for a component in the inactive state
     INACTIVE = 1
