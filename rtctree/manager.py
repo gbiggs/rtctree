@@ -323,7 +323,6 @@ class Manager(TreeNode):
             self._parse_manager_children()
 
     def _parse_component_children(self):
-        return
         # Parses the list returned by _obj.get_components into child nodes.
         with self._mutex:
             comps = self._obj.get_components()
@@ -336,7 +335,6 @@ class Manager(TreeNode):
                 self._add_child(leaf)
 
     def _parse_manager_children(self):
-        return
         # Parses the list returned by _obj.get_slave_managers into child nodes.
         with self._mutex:
             mgrs = self._obj.get_slave_managers()
