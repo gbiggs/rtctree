@@ -131,6 +131,9 @@ class Directory(TreeNode):
                 if binding.binding_name[0].kind == 'mgr':
                     name = URI.nameToString(binding.binding_name)
                     obj = self._context.resolve(binding.binding_name)
+                    if not obj:
+                        leaf = Zombie(name, self)
+                        return
                     obj = obj._narrow(RTM.Manager)
                     try:
                         leaf = Manager(name, self, obj)
