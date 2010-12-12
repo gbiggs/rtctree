@@ -155,6 +155,9 @@ class Directory(TreeNode):
                             return
                         else:
                             raise
+                    except CORBA.OBJECT_NOT_EXIST:
+                        self._add_child(Zombie(name, self))
+                        return
                     try:
                         leaf = Component(name, self, obj)
                     except CORBA.OBJECT_NOT_EXIST:
