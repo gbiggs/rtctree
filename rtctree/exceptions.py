@@ -124,6 +124,12 @@ class NotConnectedError(RtcTreeError):
         return 'Not connected.'
 
 
+class UnknownConnectionOwnerError(RtcTreeError):
+    '''A connection's owning port is not known.'''
+    def __str__(self):
+        return 'Connection owner unknown.'
+
+
 class NoSuchConfSetError(RtcTreeError):
     '''Attempted to access a configuration set that doesn't exist.'''
     def __str__(self):

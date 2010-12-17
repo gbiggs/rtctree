@@ -126,7 +126,7 @@ class TreeNode(object):
         @param filter A list of filters to apply before calling func for each
                       node in the iteration. If the filter is not True,
                       @ref func will not be called for that node. Each filter
-                      entry should be a string, representing on of the is_*
+                      entry should be a string, representing one of the is_*
                       properties (is_component, etc), or a function object.
         @return The results of the calls to @ref func in a list.
 
