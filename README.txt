@@ -378,6 +378,7 @@ Changelog
  - Added ability to restrict parsed paths (improves startup speed)
  - Added Zombie node
  - New API call to make a component exit
+ - Removed defunct create_rtctree call
 
 
 2.0
