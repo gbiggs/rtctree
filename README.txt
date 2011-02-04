@@ -94,8 +94,8 @@ The RTC Tree
 
 The core of the library is the RTC Tree::
 
-  from rtctree.tree import create_rtctree
-  tree = create_rtctree()
+  import rtctree.tree
+  tree = rtctree.tree.RTCTree()
 
 This is a file system-like tree built by parsing name servers to find
 directories, components and managers. You can treat it exactly the same
