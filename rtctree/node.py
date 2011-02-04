@@ -173,7 +173,7 @@ class TreeNode(object):
         '''
         with self._mutex:
             if self._parent:
-                return len(self._parent.full_path.split('/')) - 1
+                return len(self.full_path.split('/')) - 1
             else:
                 return 0
 
