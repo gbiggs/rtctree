@@ -3,7 +3,7 @@
 
 '''rtctree
 
-Copyright (C) 2009-2010
+Copyright (C) 2009-2011
     Geoffrey Biggs
     RT-Synthesis Research Group
     Intelligent Systems Research Institute,
@@ -32,22 +32,6 @@ from rtctree.nameserver import NameServer
 from rtctree.manager import Manager
 from rtctree.component import Component
 from rtctree.utils import filtered, trim_filter
-
-
-##############################################################################
-## API functions
-
-def create_rtctree(servers=None, paths=None, orb=None, filter=[]):
-    '''Create an RTCTree object, catching various common errors and outputting
-    a suitable error message for them.
-
-    See the documentation for the @ref RTCTree object for an explanation of the
-    arguments.
-
-    @returns An instance of RTCTree.
-
-    '''
-    return RTCTree(servers=servers, paths=paths, orb=orb, filter=filter)
 
 
 ##############################################################################

@@ -3,7 +3,7 @@
 
 '''rtctree
 
-Copyright (C) 2009-2010
+Copyright (C) 2009-2011
     Geoffrey Biggs
     RT-Synthesis Research Group
     Intelligent Systems Research Institute,
@@ -505,7 +505,18 @@ class Connection(object):
         with self._mutex:
             if not self.ports:
                 raise NotConnectedError
-            self.ports[0][1].object.disconnect(self.id)
+            # Some of the connection participants may not be in the tree,
+            # causing the port search in self.ports to return ('Unknown', None)
+            # for those participants. Search the list to find the first
+            # participant that is in the tree (there must be at least one).
+            p = self.ports[0][1]
+            ii = 1
+            while not p and ii < len(self.ports):
+                p = self.ports[ii][1]
+                ii += 1
+            if not p:
+                raise UnknownConnectionOwnerError
+            p.object.disconnect(self.id)
 
     def has_port(self, port):
         '''Return True if this connection involves the given Port object.
@@ -515,6 +526,9 @@ class Connection(object):
         '''
         with self._mutex:
             for p in self.ports:
+                if not p[1]:
+                    # Port owner not in tree, so unknown
+                    continue
                 if port.object._is_equivalent(p[1].object):
                     return True
             return False

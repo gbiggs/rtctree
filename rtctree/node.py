@@ -3,7 +3,7 @@
 
 '''rtctree
 
-Copyright (C) 2009-2010
+Copyright (C) 2009-2011
     Geoffrey Biggs
     RT-Synthesis Research Group
     Intelligent Systems Research Institute,
@@ -126,7 +126,7 @@ class TreeNode(object):
         @param filter A list of filters to apply before calling func for each
                       node in the iteration. If the filter is not True,
                       @ref func will not be called for that node. Each filter
-                      entry should be a string, representing on of the is_*
+                      entry should be a string, representing one of the is_*
                       properties (is_component, etc), or a function object.
         @return The results of the calls to @ref func in a list.
 
@@ -173,7 +173,7 @@ class TreeNode(object):
         '''
         with self._mutex:
             if self._parent:
-                return len(self._parent.full_path.split('/')) - 1
+                return len(self.full_path.split('/')) - 1
             else:
                 return 0
 
@@ -259,12 +259,19 @@ class TreeNode(object):
         with self._mutex:
             return self._parent
 
+    def remove_child(self, child):
+        # Remove a child from this node.
+        with self._mutex:
+            if child.name not in self._children:
+                raise NotRelatedError(self.name, child.name)
+            del self._children[child.name]
+
     @parent.setter
     def parent(self, new_parent):
         with self._mutex:
             if self._parent:
                 # Make sure to unlink the tree as well
-                self._parent._remove_child(self)
+                self._parent.remove_child(self)
             self._parent = new_parent
 
     @property
@@ -293,13 +300,6 @@ class TreeNode(object):
     def _remove_all_children(self):
         # Remove all children from this node.
         self._children = {}
-
-    def _remove_child(self, child):
-        # Remove a child from this node.
-        with self._mutex:
-            if child.name not in self._children:
-                raise NotRelatedError(self.name, child.name)
-            del self._children[child.name]
 
 
 # vim: tw=79

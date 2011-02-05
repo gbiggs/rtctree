@@ -3,7 +3,7 @@
 
 '''rtctree
 
-Copyright (C) 2009-2010
+Copyright (C) 2009-2011
     Geoffrey Biggs
     RT-Synthesis Research Group
     Intelligent Systems Research Institute,
@@ -122,6 +122,12 @@ class NotConnectedError(RtcTreeError):
     '''A connection is not connected.'''
     def __str__(self):
         return 'Not connected.'
+
+
+class UnknownConnectionOwnerError(RtcTreeError):
+    '''A connection's owning port is not known.'''
+    def __str__(self):
+        return 'Connection owner unknown.'
 
 
 class NoSuchConfSetError(RtcTreeError):

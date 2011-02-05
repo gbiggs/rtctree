@@ -3,7 +3,7 @@
 
 '''rtctree
 
-Copyright (C) 2009-2010
+Copyright (C) 2009-2011
     Geoffrey Biggs
     RT-Synthesis Research Group
     Intelligent Systems Research Institute,
@@ -19,6 +19,7 @@ Object representing a manager node in the tree.
 
 
 from omniORB import CORBA, TRANSIENT_ConnectFailed, UNKNOWN_UserException
+import os.path
 import sys
 
 from rtctree.component import Component
@@ -325,7 +326,12 @@ class Manager(TreeNode):
     def _parse_component_children(self):
         # Parses the list returned by _obj.get_components into child nodes.
         with self._mutex:
-            comps = self._obj.get_components()
+            try:
+                comps = self._obj.get_components()
+            except CORBA.BAD_PARAM, e:
+                print >>sys.stderr, '{0}: {1}'.format(
+                        os.path.basename(sys.argv[0]), e)
+                return
             for c in comps:
                 # Get the instance profile - this will be the node's name
                 profile = c.get_component_profile()
