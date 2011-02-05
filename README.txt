@@ -379,6 +379,7 @@ Changelog
  - Added Zombie node
  - New API call to make a component exit
  - Removed defunct create_rtctree call
+ - Exposed remove_node API call
 
 
 2.0
