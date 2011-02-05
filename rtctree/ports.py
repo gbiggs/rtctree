@@ -496,6 +496,10 @@ class Connection(object):
         self._mutex = threading.RLock()
         self._parse()
 
+    def __str__(self):
+        return 'Connection {0} (ID: {0}), properties {2}, with ports '\
+            '{3}'.format(self._name, self._id, self._properties, self._ports)
+
     def disconnect(self):
         '''Disconnect this connection.'''
         with self._mutex:
