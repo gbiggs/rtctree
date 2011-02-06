@@ -595,7 +595,7 @@ class Connection(object):
                             self._ports.append(('Unknown', None))
                         else:
                             port_owner = owner_nodes[0]
-                            port_owner_path = port_owner.full_path
+                            port_owner_path = port_owner.full_path_str
                             port_name = p.get_port_profile().name
                             prefix = port_owner.instance_name + '.'
                             if port_name.startswith(prefix):
