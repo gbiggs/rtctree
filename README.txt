@@ -380,6 +380,7 @@ Changelog
  - New API call to make a component exit
  - Removed defunct create_rtctree call
  - Exposed remove_node API call
+ - Changed node.full_path to return a list, added node.full_path_str
 
 
 2.0

@@ -182,10 +182,19 @@ class TreeNode(object):
         '''The full path of this node.'''
         with self._mutex:
             if self._parent:
+                return self._parent.full_path.append(self._name)
+            else:
+                return [self._name]
+
+    @property
+    def full_path_str(self):
+        '''The full path of this node as a string.'''
+        with self._mutex:
+            if self._parent:
                 if self._parent._name == '/':
-                    return self._parent.full_path + self._name
+                    return self._parent.full_path_str + self._name
                 else:
-                    return self._parent.full_path + '/' + self._name
+                    return self._parent.full_path_str + '/' + self._name
             else:
                 return self._name
 
