@@ -497,7 +497,7 @@ class Connection(object):
         self._parse()
 
     def __str__(self):
-        return 'Connection {0} (ID: {0}), properties {2}, with ports '\
+        return 'Connection {0} (ID: {1}), properties {2}, with ports '\
             '{3}'.format(self._name, self._id, self._properties, self._ports)
 
     def disconnect(self):
