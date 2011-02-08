@@ -163,6 +163,12 @@ class Directory(TreeNode):
                     except CORBA.OBJECT_NOT_EXIST:
                         # Component zombie
                         leaf = Zombie(name, self)
+                    except CORBA.TRANSIENT, e:
+                        if e.args[0] == TRANSIENT_ConnectFailed:
+                            self._add_child(Zombie(name, self))
+                            return
+                        else:
+                            raise
                     self._add_child(leaf)
                 else:
                     # Unknown type - add a plain node
