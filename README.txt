@@ -13,7 +13,7 @@ started, stopped, connected together, have their configuration changed,
 and so on.
 
 This software is developed at the National Institute of Advanced
-Industrial Science and Technology. Approval number H22PRO-1136. The
+Industrial Science and Technology. Approval number H23PRO-1229. The
 development was financially supported by the New Energy and Industrial
 Technology Development Organisation Project for Strategic Development of
 Advanced Robotics Elemental Technologies.  This software is licensed
