@@ -105,8 +105,6 @@ class Port(object):
                             # Invalid property selected
                             raise IncompatibleDataPortConnectionPropsError
                     for d in dests:
-                        print d.name
-                        print d.properties
                         if prop in d.properties:
                             if props[prop] not in d.properties[prop] and \
                                     'Any' not in d.properties[prop]:
@@ -132,12 +130,34 @@ class Port(object):
             self.reparse_connections()
 
     def get_connection_by_dest(self, dest):
-        '''Search for a connection between this and another port.'''
+        '''DEPRECATED. Search for a connection between this and another port.'''
         with self._mutex:
             for conn in self.connections:
                 if conn.has_port(self) and conn.has_port(dest):
                     return conn
             return None
+
+    def get_connections_by_dest(self, dest):
+        '''Search for all connections between this and another port.'''
+        with self._mutex:
+            res = []
+            for c in self.connections:
+                if c.has_port(self) and c.has_port(dest):
+                    res.append(c)
+            return res
+
+    def get_connections_by_dests(self, dests):
+        '''Search for all connections involving this and all other ports.'''
+        with self._mutex:
+            res = []
+            for c in self.connections:
+                if not c.has_port(self):
+                    continue
+                for d in dests:
+                    if not c.has_port(d):
+                        continue
+                res.append(c)
+            return res
 
     def get_connection_by_id(self, id):
         '''Search for a connection on this port by its ID.'''

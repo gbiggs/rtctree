@@ -367,6 +367,9 @@ Changelog
 ---
 
  - Support three-or-more port connections.
+ - Deprecated Port.get_connection_by_dest()
+ - Added Port.get_connections_by_dest()
+ - Added Port.get_connections_by_dests()
 
 3.0
 ---
