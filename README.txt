@@ -363,6 +363,11 @@ repository. This is better if you wish to contribute patches.
 Changelog
 =========
 
+4.0
+---
+
+ - Support three-or-more port connections.
+
 3.0
 ---
 
