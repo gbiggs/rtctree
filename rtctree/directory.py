@@ -136,7 +136,7 @@ class Directory(TreeNode):
                         return
                     obj = obj._narrow(RTM.Manager)
                     try:
-                        leaf = Manager(name, self, obj)
+                        leaf = Manager(name, self, obj, dynamic=self.dynamic)
                     except CORBA.OBJECT_NOT_EXIST:
                         # Manager zombie
                         leaf = Zombie(name, self)
@@ -159,10 +159,10 @@ class Directory(TreeNode):
                         self._add_child(Zombie(name, self))
                         return
                     try:
-                        leaf = Component(name, self, obj)
+                        leaf = Component(name, self, obj, dynamic=self.dynamic)
                     except CORBA.OBJECT_NOT_EXIST:
                         # Component zombie
-                        leaf = Zombie(name, self)
+                        leaf = Zombie(name, self, dynamic=self.dynamic)
                     except CORBA.TRANSIENT, e:
                         if e.args[0] == TRANSIENT_ConnectFailed:
                             self._add_child(Zombie(name, self))
@@ -179,7 +179,8 @@ class Directory(TreeNode):
             else:
                 # This is a context, and therefore a subdirectory.
                 subdir_name = URI.nameToString(binding.binding_name)
-                subdir = Directory(subdir_name, self, filter=trimmed_filter)
+                subdir = Directory(subdir_name, self, filter=trimmed_filter,
+                        dynamic=self.dynamic)
                 subdir_context = self._context.resolve(binding.binding_name)
                 subdir_context = subdir_context._narrow(CosNaming.NamingContext)
                 subdir._parse_context(subdir_context, orb,

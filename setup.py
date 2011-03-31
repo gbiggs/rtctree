@@ -49,8 +49,9 @@ class BuildIDL(Command):
         self.idl_dir  = None
         self.omniidl = None
         self.omniidl_params = ['-bpython']
-        self.idl_files = ['BasicDataType', 'ExtendedDataTypes', 'InterfaceDataTypes',
-                          'DataPort', 'Manager', 'OpenRTM', 'RTC', 'SDOPackage']
+        self.idl_files = ['BasicDataType', 'ComponentObserver',
+                'ExtendedDataTypes', 'InterfaceDataTypes', 'DataPort',
+                'Manager', 'OpenRTM', 'RTC', 'SDOPackage']
 
     def finalize_options(self):
         if not self.omniidl:

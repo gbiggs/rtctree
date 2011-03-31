@@ -18,14 +18,18 @@ Object representing a component node in the tree.
 '''
 
 
+import RTC
+import SDOPackage
+import time
+import uuid
+
 from rtctree.config_set import ConfigurationSet
 from rtctree.exceptions import *
 from rtctree.exec_context import ExecutionContext
 from rtctree.node import TreeNode
+import rtctree.observer
 from rtctree.ports import parse_port
-from rtctree.utils import build_attr_string, nvlist_to_dict
-import RTC
-import SDOPackage
+from rtctree.utils import build_attr_string, nvlist_to_dict, dict_to_nvlist
 
 
 ##############################################################################
@@ -49,10 +53,13 @@ class Component(TreeNode):
         @param obj The CORBA LightweightRTObject object to wrap.
 
         '''
+        self._obj = obj
+        self._obs = None
+        self._obs_id = None
         super(Component, self).__init__(name=name, parent=parent,
                                         *args, **kwargs)
+        self._set_events(['rtc_status'])
         self._reset_data()
-        self._obj = obj
         self._parse_profile()
 
     def reparse(self):
@@ -758,6 +765,33 @@ class Component(TreeNode):
         # Components cannot contain children.
         raise CannotHoldChildrenError
 
+    def _enable_dynamic(self, enable=True):
+        if enable:
+            obs = rtctree.observer.RTCObserver(self)
+            uuid_val = uuid.uuid4().get_bytes()
+            intf_type = 'IDL:OpenRTM/ComponentObserver:1.0'
+            props = dict_to_nvlist({'heartbeat.enable': 'YES',
+                'heartbeat.interval': '1.0',
+                'observed_status': 'ALL'})
+            sprof = SDOPackage.ServiceProfile(id=uuid_val,
+                    interface_type=intf_type, service=obs._this(),
+                    properties=props)
+            conf = self.object.get_configuration()
+            res = conf.add_service_profile(sprof)
+            if res:
+                self._dynamic = True
+                self._obs = obs
+                self._obs_id = uuid_val
+                # If we could set an observer, the component is alive
+                self._last_heart_beat = time.time()
+        else: # Disable
+            conf = self.object.get_configuration()
+            res = conf.remove_service_profile(self._obs_id)
+            if res:
+                self._dynamic = False
+                self._obs = None
+                self._obs_id = None
+
     def _get_ec_state(self, ec):
         # Get the state of this component in an EC and return the enum value.
         if self._obj.is_alive(ec._obj):
@@ -772,6 +806,23 @@ class Component(TreeNode):
                 return self.UNKNOWN
         else:
             return self.CREATED
+
+    def _heartbeat(self):
+        # Received a heart beat
+        self._last_heart_beat = time.time()
+
+    def _set_ec_state(self, ec_id, state):
+        # Forcefully set the state of this component in an EC
+        with self._mutex:
+            if ec_id >= len(self.owned_ecs):
+                ec_id -= len(self.owned_ecs)
+                if ec_id >= len(self.participating_ecs):
+                    raise BadECIndexError(ec_id)
+                self.participating_ec_states[ec_id] = state
+            else:
+                self.owned_ec_states[ec_id] = state
+        # Call callbacks outside the mutex
+        self._call_cb('rtc_status', (ec_id, state))
 
     def _parse_configuration(self):
         # Parse the component's configuration sets

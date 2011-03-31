@@ -225,6 +225,19 @@ class NotRelatedError(RtcTreeError):
                 self.args[1])
 
 
+class NoSuchEventError(RtcTreeError):
+    '''Tried to register a callback for a non-existent event.'''
+    def __str__(self):
+        return 'Callback event {0} does not exist on node {1}.'.format(
+                self.args[1], self.args[0])
+
+
+class NoCBError(RtcTreeError):
+    '''Tried to remove an unregistered callback.'''
+    def __str__(self):
+        return 'Callback {0}:{1} does not exist on node {2}.'.format(
+                self.args[1], self.args[2], self.args[0])
+
 
 # vim: tw=79
 

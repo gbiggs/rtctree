@@ -20,7 +20,7 @@ Object representing a generic node in the tree.
 
 import threading
 
-from rtctree.exceptions import NotRelatedError
+from rtctree.exceptions import NotRelatedError, NoSuchEventError
 
 
 ##############################################################################
@@ -34,23 +34,29 @@ class TreeNode(object):
 
     '''
     def __init__(self, name=None, parent=None, children=None, filter=[],
-            *args, **kwargs):
+            dynamic=False, *args, **kwargs):
         '''Constructor.
 
         @param name Name of this node (i.e. its entry in the path).
         @param parent The parent node of this node, if any.
         @param children If the list of children is already known, put it here.
         @param filter A list of paths to filter by.
+        @param dynamic Enable dynamic features such as observers on this node
+                       and any children it creates.
 
         '''
         super(TreeNode, self).__init__(*args, **kwargs)
+        self._mutex = threading.RLock()
         self._name = name
         self._parent = parent
         if children:
             self._children = children
         else:
             self._children = {}
-        self._mutex = threading.RLock()
+        self._cbs = {}
+        self._dynamic = dynamic
+        if dynamic:
+            self._enable_dynamic(dynamic)
 
     def __str__(self):
         '''Get this node as a string.'''
@@ -60,6 +66,25 @@ class TreeNode(object):
             for child in self._children:
                 result += str(self._children[child])
         return result
+
+    def add_callback(self, event, cb, args=None):
+        '''Add a callback to this node.
+
+        Callbacks are called when the specified event occurs. The available
+        events depends on the specific node type. Args should be a value to
+        pass to the callback when it is called. The callback should be of the
+        format:
+
+        def callback(node, value, cb_args):
+
+        where node will be the node that called the function, value is the
+        relevant information for the event, and cb_args are the arguments you
+        registered with the callback.
+
+        '''
+        if event not in self._cbs:
+            raise exceptions.NoSuchEventError
+        self._cbs[event] = [(cb, args)]
 
     def get_node(self, path):
         '''Get a child node of this node, or this node, based on a path.
@@ -152,6 +177,21 @@ class TreeNode(object):
                 result += self._children[child].iterate(func, args, filter)
         return result
 
+    def rem_callback(self, event, cb):
+        '''Remove a callback from this node.
+
+        The callback is removed from the specified event.
+
+        @param cb The callback function to remove.
+
+        '''
+        if event not in self._cbs:
+            raise exceptions.NoSuchEventError(self.name, event)
+        c = [(x[0], x[1]) for x in self._cbs[event]]
+        if not c:
+            raise exceptions.NoCBError(self.name, event, cb)
+        self._cbs[event].remove(c[0])
+
     @property
     def children(self):
         '''The child nodes of this node (if any).'''
@@ -176,6 +216,22 @@ class TreeNode(object):
                 return len(self.full_path) - 1
             else:
                 return 0
+
+    @property
+    def dynamic(self):
+        '''Get and change the dynamic setting of this node.'''
+        with self._mutex:
+            return self._dynamic
+
+    @dynamic.setter
+    def dynamic(self, dynamic):
+        with self._mutex:
+            if self._dynamic and not dynamic:
+                # Disable dynamism
+                self._enable_dynamic(False)
+            elif not self._dynamic and dynamic:
+                # Enable dynamism
+                self._enable_dynamic(True)
 
     @property
     def full_path(self):
@@ -306,9 +362,25 @@ class TreeNode(object):
         with self._mutex:
             self._children[new_child._name] = new_child
 
+    def _call_cb(self, event, value):
+        if event not in self._cbs:
+            raise exceptions.NoSuchEventError(self.name, event)
+        for (cb, args) in self._cbs[event]:
+            cb(self, value, args)
+
+    def _enable_dynamic(self, enable=True):
+        # Enable or disable dynamic features.
+        # By default, do nothing.
+        pass
+
     def _remove_all_children(self):
         # Remove all children from this node.
         self._children = {}
+
+    def _set_events(self, events):
+        self._cbs = {}
+        for e in events:
+            self._cbs[e] = []
 
 
 # vim: tw=79

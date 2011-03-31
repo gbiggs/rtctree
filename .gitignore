@@ -14,6 +14,7 @@ SDOPackage__POA
 SDOPackage_idl.py
 ExtendedDataTypes_idl.py
 InterfaceDataTypes_idl.py
+ComponentObserver_idl.py
 *.swp
 *.pyc
 tags
