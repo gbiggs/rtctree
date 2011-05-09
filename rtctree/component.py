@@ -27,7 +27,7 @@ from rtctree.config_set import ConfigurationSet
 from rtctree.exceptions import *
 from rtctree.exec_context import ExecutionContext
 from rtctree.node import TreeNode
-import rtctree.observer
+import rtctree.sdo
 from rtctree.ports import parse_port
 from rtctree.utils import build_attr_string, nvlist_to_dict, dict_to_nvlist
 
@@ -56,6 +56,7 @@ class Component(TreeNode):
         self._obj = obj
         self._obs = None
         self._obs_id = None
+        self._loggers = {}
         super(Component, self).__init__(name=name, parent=parent,
                                         *args, **kwargs)
         self._set_events(['rtc_status'])
@@ -692,10 +693,62 @@ class Component(TreeNode):
         return True
 
     @property
+    def loggers(self):
+        '''Returns the list of logger IDs attached to this component.'''
+        return self._loggers.keys()
+
+    @property
     def object(self):
         '''The LightweightRTObject this object wraps.'''
         with self._mutex:
             return self._obj
+
+    def add_logger(self, cb, level='NORMAL', log_filter=''):
+        '''Add a callback to receive log events from this component.
+
+        @param cb The callback function to receive log events. It must have the
+                  signature cb(time, source, level, message), where time is a
+                  floating-point time stamp, source is the name of the logger
+                  that provided the log record, level is the log level of the
+                  record and message is a text string.
+        @param level The maximum level of log records to receive.
+        @param log_filter Filter the objects from which to receive log
+                          messages.
+        @return An ID for this logger. Use this ID in future operations such as
+                removing this logger.
+        @raises AddLoggerError
+
+        '''
+        with self._mutex:
+            obs = rtctree.sdo.RTCLogger(self, cb)
+            uuid_val = uuid.uuid4()
+            intf_type = 'IDL:OpenRTM/Logger:1.0'
+            props = {'logger.log_level': level}
+            if log_filter:
+                props['logger.filter'] = log_filter
+            props = dict_to_nvlist(props)
+            sprof = SDOPackage.ServiceProfile(id=uuid_val.get_bytes(),
+                    interface_type=intf_type, service=obs._this(),
+                    properties=props)
+            conf = self.object.get_configuration()
+            res = conf.add_service_profile(sprof)
+            if res:
+                self._loggers[uuid_val] = obs
+                return uuid_val
+            raise AddLoggerError(self.name)
+
+    def rem_logger(self, cb_id):
+        '''Remove a logger.
+
+        @param cb_id The ID of the logger to remove.
+        @raises NoLoggerError
+
+        '''
+        if cb_id not in self._loggers:
+            raise NoLoggerError(cb_id, self.name)
+        conf = self.object.get_configuration()
+        res = conf.remove_service_profile(cb_id.get_bytes())
+        del self._loggers[cb_id]
 
     ###########################################################################
     # Configuration set management
@@ -767,7 +820,7 @@ class Component(TreeNode):
 
     def _enable_dynamic(self, enable=True):
         if enable:
-            obs = rtctree.observer.RTCObserver(self)
+            obs = rtctree.sdo.RTCObserver(self)
             uuid_val = uuid.uuid4().get_bytes()
             intf_type = 'IDL:OpenRTM/ComponentObserver:1.0'
             props = dict_to_nvlist({'heartbeat.enable': 'YES',

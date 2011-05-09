@@ -13,7 +13,7 @@ Copyright (C) 2009-2011
 Licensed under the Eclipse Public License -v 1.0 (EPL)
 http://www.opensource.org/licenses/eclipse-1.0.txt
 
-Object representing a component node in the tree.
+SDO client objects.
 
 '''
 
@@ -49,6 +49,16 @@ class RTCObserver(OpenRTM__POA.ComponentObserver):
             print 'CONFIGURATION', hint
         elif kind == 'HEARTBEAT':
             self._tgt._heartbeat()
+
+
+class RTCLogger(OpenRTM__POA.Logger):
+    def __init__(self, target, callback):
+        self._tgt = target
+        self._cb = callback
+
+    def publish(self, record):
+        ts = record.time.sec + record.time.nsec / 1e9
+        self._cb(ts, loggername, level, message)
 
 
 # vim: tw=79

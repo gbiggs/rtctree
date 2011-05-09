@@ -232,11 +232,25 @@ class NoSuchEventError(RtcTreeError):
                 self.args[1], self.args[0])
 
 
+class AddLoggerError(RtcTreeError):
+    '''Error adding a logger to a node.'''
+    def __str__(self):
+        return 'Error adding logger to node {0}.'.format(
+                self.args[0])
+
+
 class NoCBError(RtcTreeError):
     '''Tried to remove an unregistered callback.'''
     def __str__(self):
         return 'Callback {0}:{1} does not exist on node {2}.'.format(
                 self.args[1], self.args[2], self.args[0])
+
+
+class NoLoggerError(RtcTreeError):
+    '''Tried to remove an unregistered logger.'''
+    def __str__(self):
+        return 'Logger {0} does not exist on node {1}.'.format(
+                self.args[0], self.args[1])
 
 
 # vim: tw=79
