@@ -703,17 +703,17 @@ class Component(TreeNode):
         with self._mutex:
             return self._obj
 
-    def add_logger(self, cb, level='NORMAL', log_filter=''):
+    def add_logger(self, cb, level='NORMAL', filters='ALL'):
         '''Add a callback to receive log events from this component.
 
         @param cb The callback function to receive log events. It must have the
-                  signature cb(time, source, level, message), where time is a
-                  floating-point time stamp, source is the name of the logger
-                  that provided the log record, level is the log level of the
-                  record and message is a text string.
+            signature cb(name, time, source, level, message), where name is the
+            name of the component the log record came from, time is a
+            floating-point time stamp, source is the name of the logger that
+            provided the log record, level is the log level of the record and
+            message is a text string.
         @param level The maximum level of log records to receive.
-        @param log_filter Filter the objects from which to receive log
-                          messages.
+        @param filters Filter the objects from which to receive log messages.
         @return An ID for this logger. Use this ID in future operations such as
                 removing this logger.
         @raises AddLoggerError
@@ -723,9 +723,8 @@ class Component(TreeNode):
             obs = rtctree.sdo.RTCLogger(self, cb)
             uuid_val = uuid.uuid4()
             intf_type = 'IDL:OpenRTM/Logger:1.0'
-            props = {'logger.log_level': level}
-            if log_filter:
-                props['logger.filter'] = log_filter
+            props = {'logger.log_level': level,
+                    'logger.filter': filters}
             props = dict_to_nvlist(props)
             sprof = SDOPackage.ServiceProfile(id=uuid_val.get_bytes(),
                     interface_type=intf_type, service=obs._this(),
@@ -737,7 +736,7 @@ class Component(TreeNode):
                 return uuid_val
             raise AddLoggerError(self.name)
 
-    def rem_logger(self, cb_id):
+    def remove_logger(self, cb_id):
         '''Remove a logger.
 
         @param cb_id The ID of the logger to remove.

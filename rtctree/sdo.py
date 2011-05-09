@@ -58,7 +58,7 @@ class RTCLogger(OpenRTM__POA.Logger):
 
     def publish(self, record):
         ts = record.time.sec + record.time.nsec / 1e9
-        self._cb(ts, loggername, level, message)
+        self._cb(self._tgt.name, ts, loggername, level, message)
 
 
 # vim: tw=79
