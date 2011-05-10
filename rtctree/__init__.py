@@ -24,7 +24,7 @@ import sys
 import os
 _openrtm_idl_path = os.path.join(os.path.dirname(__file__), 'rtmidl')
 if _openrtm_idl_path not in sys.path:
-    sys.path.append(_openrtm_idl_path)
+    sys.path.insert(0, _openrtm_idl_path)
 del _openrtm_idl_path
 del os
 del sys
