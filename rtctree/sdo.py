@@ -30,19 +30,29 @@ class RTCObserver(OpenRTM__POA.ComponentObserver):
     def update_status(self, kind, hint):
         kind = str(kind)
         if kind == 'COMPONENT_PROFILE':
-            print 'COMPONENT_PROFILE', hint
+            self._tgt._profile_update([x.strip() for x in hint.split(',')])
         elif kind == 'RTC_STATUS':
             status, ec_id = hint.split(':')
-            print status, ec_id
             if status == 'INACTIVE':
                 status = self._tgt.INACTIVE
             elif status == 'ACTIVE':
                 status = self._tgt.ACTIVE
             elif status == 'ERROR':
                 status = self._tgt.ERROR
-            self._tgt._set_ec_state(int(ec_id), status)
+            self._tgt._set_state_in_ec(int(ec_id), status)
         elif kind == 'EC_STATUS':
-            print 'EC_STATUS', hint
+            event, ec_id = hint.split(':')
+            if event == 'ATTACHED':
+                event = self._tgt.ATTACHED
+            elif event == 'DETACHED':
+                event = self._tgt.DETACHED
+            elif event == 'RATE_CHANGED':
+                event = self._tgt.RATE_CHANGED
+            elif event == 'STARTUP':
+                event = self._tgt.STARTUP
+            elif event == 'SHUTDOWN':
+                event = self._tgt.SHUTDOWN
+            self._tgt._ec_event(int(ec_id), event)
         elif kind == 'PORT_PROFILE':
             print 'PORT_PROFILE', hint
         elif kind == 'CONFIGURATION':

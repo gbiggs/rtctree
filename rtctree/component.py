@@ -44,6 +44,20 @@ class Component(TreeNode):
     Component nodes store all the properties of a component, as well as
     references to the actual objects and object types used in the component.
 
+    The following callbacks are available on this node type when it is dynamic:
+
+    - rtc_status(ec_id, status)
+      The component's state has changed in the specified execution context. The
+      new status is one of Component.INACTIVE, Component.ACTIVE,
+      Component.ERROR, Component.UNKNOWN and Component.CREATED.
+    - component_profile(items)
+      One or more members of the component's profiles have been updated. The
+      updated items are listed in the "items" argument.
+    - ec_event(ec_id, event)
+      A change in one of the attached execution contexts has occurred. The
+      event is one of Component.ATTACHED, Component.DETACHED,
+      Component.RATE_CHANGED, Component.STARTUP, and Component.SHUTDOWN.
+
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor.
@@ -57,9 +71,10 @@ class Component(TreeNode):
         self._obs = None
         self._obs_id = None
         self._loggers = {}
+        self._last_heartbeat = time.time() # RTC is alive at construction time
         super(Component, self).__init__(name=name, parent=parent,
                                         *args, **kwargs)
-        self._set_events(['rtc_status'])
+        self._set_events(['rtc_status', 'component_profile', 'ec_event'])
         self._reset_data()
         self._parse_profile()
 
@@ -79,28 +94,28 @@ class Component(TreeNode):
         self._parse_profile()
 
     def reparse_conf_sets(self):
-        '''Reparse configuration sets.'''
+        '''Delayed reparse configuration sets.'''
         self._reset_conf_sets()
 
     def reparse_ecs(self):
-        '''Reparse all execution contexts.'''
+        '''Delayed reparse all execution contexts.'''
         self.reparse_owned_ecs()
         self.reparse_participating_ecs()
 
     def reparse_owned_ecs(self):
-        '''Reparse only owned execution contexts.'''
+        '''Delayed reparse only owned execution contexts.'''
         self._reset_owned_ecs()
 
     def reparse_participating_ecs(self):
-        '''Reparse only participating execution contexts.'''
+        '''Delayed reparse only participating execution contexts.'''
         self._reset_participating_ecs()
 
     def reparse_ports(self):
-        '''Reparse ports.'''
+        '''Delayed reparse ports.'''
         self._reset_ports()
 
     def reparse_profile(self):
-        '''Reparse the component's profile.'''
+        '''Delayed reparse the component's profile.'''
         self._parse_profile()
 
     ###########################################################################
@@ -688,6 +703,15 @@ class Component(TreeNode):
     # Node functionality
 
     @property
+    def heartbeat_time(self):
+        '''The time of the last heartbeat.
+
+        Updated only when the node is dynamic.
+
+        '''
+        return self._last_heartbeat
+
+    @property
     def is_component(self):
         '''Is this node a component?'''
         return True
@@ -835,7 +859,7 @@ class Component(TreeNode):
                 self._obs = obs
                 self._obs_id = uuid_val
                 # If we could set an observer, the component is alive
-                self._last_heart_beat = time.time()
+                self._last_heartbeat = time.time()
         else: # Disable
             conf = self.object.get_configuration()
             res = conf.remove_service_profile(self._obs_id)
@@ -843,6 +867,31 @@ class Component(TreeNode):
                 self._dynamic = False
                 self._obs = None
                 self._obs_id = None
+
+    def _ec_event(self, ec_id, event):
+        with self._mutex:
+            if event == self.ATTACHED:
+                # New EC has been attached
+                self._participating_ecs.append(ExecutionContext(
+                    self._obj.get_context(ec_id), ec_id))
+            elif event == self.DETACHED:
+                # An EC has been detached; delete the local facade
+                if self._owned_ecs:
+                    # Find the 
+                elif self._participating_ecs:
+                    pass
+                else:
+                    # Nothing to update if neither of those lists have been
+                    # built yet
+                    pass
+            elif event == self.RATE_CHANGED:
+                pass
+            elif event == self.STARTUP:
+                pass
+            elif event == self.SHUTDOWN:
+                pass
+        # Call callbacks outside the mutex
+        self._call_cb('ec_event', (ec_id, state))
 
     def _get_ec_state(self, ec):
         # Get the state of this component in an EC and return the enum value.
@@ -861,20 +910,7 @@ class Component(TreeNode):
 
     def _heartbeat(self):
         # Received a heart beat
-        self._last_heart_beat = time.time()
-
-    def _set_ec_state(self, ec_id, state):
-        # Forcefully set the state of this component in an EC
-        with self._mutex:
-            if ec_id >= len(self.owned_ecs):
-                ec_id -= len(self.owned_ecs)
-                if ec_id >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_id)
-                self.participating_ec_states[ec_id] = state
-            else:
-                self.owned_ec_states[ec_id] = state
-        # Call callbacks outside the mutex
-        self._call_cb('rtc_status', (ec_id, state))
+        self._last_heartbeat = time.time()
 
     def _parse_configuration(self):
         # Parse the component's configuration sets
@@ -905,6 +941,12 @@ class Component(TreeNode):
             else:
                 self._parent_obj = ''
             self._properties = nvlist_to_dict(profile.properties)
+
+    def _profile_update(self, items):
+        # Reparse the profile
+        self._parse_profile()
+        # Call callbacks outside the mutex
+        self._call_cb('component_profile', items)
 
     def _reset_conf_sets(self):
         with self._mutex:
@@ -945,6 +987,19 @@ class Component(TreeNode):
             self._orgs = []
             self._parent_orgs = []
 
+    def _set_state_in_ec(self, ec_id, state):
+        # Forcefully set the state of this component in an EC
+        with self._mutex:
+            if ec_id >= len(self.owned_ecs):
+                ec_id -= len(self.owned_ecs)
+                if ec_id >= len(self.participating_ecs):
+                    raise BadECIndexError(ec_id)
+                self.participating_ec_states[ec_id] = state
+            else:
+                self.owned_ec_states[ec_id] = state
+        # Call callbacks outside the mutex
+        self._call_cb('rtc_status', (ec_id, state))
+
     ## Constant for a component in the inactive state
     INACTIVE = 1
     ## Constant for a component in the active state
@@ -955,6 +1010,17 @@ class Component(TreeNode):
     UNKNOWN = 4
     ## Constant for a component in the created state
     CREATED = 5
+
+    ## Constant for execution context event "attached"
+    ATTACHED = 6
+    ## Constant for execution context event "detached"
+    DETACHED = 7
+    ## Constant for execution context event "rate_changed"
+    RATE_CHANGED = 8
+    ## Constant for execution context event "startup"
+    STARTUP = 9
+    ## Constant for execution context event "shutdown"
+    SHUTDOWN = 10
 
 
 # vim: tw=79
