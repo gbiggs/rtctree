@@ -864,6 +864,9 @@ class Component(TreeNode):
         # Components cannot contain children.
         raise CannotHoldChildrenError
 
+    def _config_event(self, name, event):
+        pass
+
     def _enable_dynamic(self, enable=True):
         if enable:
             obs = rtctree.sdo.RTCObserver(self)
@@ -990,22 +993,31 @@ class Component(TreeNode):
             self._properties = nvlist_to_dict(profile.properties)
 
     def _port_event(self, port_name, event):
+        def get_port_obj(port_name):
+            for p_obj in self._obj.get_ports():
+                prof = p_obj.get_port_profile()
+                if prof.name == port_name:
+                    return p_obj
+            raise ValueError(port_name)
+
         with self._mutex:
             if self._ports:
                 if event == self.PORT_ADD:
                     # New port
-                    p_obj = 
+                    p_obj = get_port_obj(port_name)
+                    self._ports.append(parse_port(p_obj, self))
                 elif event == self.PORT_REMOVE:
                     # Port removed
                     p = self.get_port_by_name(port_name)
                     self._ports.remove(p)
                 elif event == self.PORT_CONNECT:
                     # A port has a new connection
-                    # Find and update the port
                     p = self.get_port_by_name(port_name)
+                    p.reparse_connections()
                 elif event == self.PORT_DISCONNECT:
                     # A port has had a connection removed
-                    pass
+                    p = self.get_port_by_name(port_name)
+                    p.reparse_connections()
         # Call callbacks outside the mutex
         self._call_cb('port_event', (port_name, event))
 

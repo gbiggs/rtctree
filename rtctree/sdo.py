@@ -65,7 +65,20 @@ class RTCObserver(OpenRTM__POA.ComponentObserver):
                 event = self._tgt.PORT_DISCONNECT
             self._tgt._port_event(port_name, event)
         elif kind == 'CONFIGURATION':
-            print 'CONFIGURATION', hint
+            event, arg = hint.split(':')
+            if event == 'UPDATE_CONFIGSET':
+                event = self._tgt.CFG_UPDATE_SET
+            elif event == 'UPDATE_PARAMETER':
+                event = self._tgt.CFG_UPDATE_PARAM
+            elif event == 'SET_CONFIG_SET':
+                event = self._tgt.CFG_UPDATE_PARAM_IN_ACTIVE
+            elif event == 'ADD_CONFIG_SET':
+                event = self._tgt.CFG_ADD_SET
+            elif event == 'REMOVE_CONFIG_SET':
+                event = self._tgt.CFG_REMOVE_SET
+            elif event == 'ACTIVATE_CONFIG_SET':
+                event = self._tgt.CFG_ACTIVATE_SET
+            self._tgt._config_event(arg, event)
         elif kind == 'HEARTBEAT':
             self._tgt._heartbeat()
 
