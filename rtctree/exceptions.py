@@ -88,6 +88,13 @@ class BadECIndexError(RtcTreeError):
         return 'Bad execution context index: {0}'.format(self.args[0])
 
 
+class NoECWithHandleError(RtcTreeError):
+    '''No execution context exists with the given handle.'''
+    def __str__(self):
+        return ('No execution context exists with ec_handle '
+            '{0}'.format(self.args[0]))
+
+
 class WrongPortTypeError(RtcTreeError):
     '''Tried to connect two ports of incompatible type.'''
     def __str__(self):

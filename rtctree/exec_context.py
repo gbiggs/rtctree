@@ -196,7 +196,7 @@ class ExecutionContext(object):
         return self.running_as_string()
 
     def _parse(self):
-        #Parse the ExecutionContext object.
+        # Parse the ExecutionContext object.
         with self._mutex:
             if self._obj.is_running():
                 self._running = True
@@ -214,6 +214,16 @@ class ExecutionContext(object):
             self._owner = profile.owner
             self._participants = profile.participants
             self._properties = nvlist_to_dict(profile.properties)
+
+    def _set_rate(self, rate):
+        # Alter the stored execution rate value
+        with self._mutex:
+            self._rate = rate
+
+    def _set_running(self, running):
+        # Alter the running state
+        with self._mutex:
+            self._running = running
 
     ## Constant for a periodic execution context.
     PERIODIC = 1

@@ -32,29 +32,38 @@ class RTCObserver(OpenRTM__POA.ComponentObserver):
         if kind == 'COMPONENT_PROFILE':
             self._tgt._profile_update([x.strip() for x in hint.split(',')])
         elif kind == 'RTC_STATUS':
-            status, ec_id = hint.split(':')
+            status, ec_handle = hint.split(':')
             if status == 'INACTIVE':
                 status = self._tgt.INACTIVE
             elif status == 'ACTIVE':
                 status = self._tgt.ACTIVE
             elif status == 'ERROR':
                 status = self._tgt.ERROR
-            self._tgt._set_state_in_ec(int(ec_id), status)
+            self._tgt._set_state_in_ec(int(ec_handle), status)
         elif kind == 'EC_STATUS':
-            event, ec_id = hint.split(':')
+            event, ec_handle = hint.split(':')
             if event == 'ATTACHED':
-                event = self._tgt.ATTACHED
+                event = self._tgt.EC_ATTACHED
             elif event == 'DETACHED':
-                event = self._tgt.DETACHED
+                event = self._tgt.EC_DETACHED
             elif event == 'RATE_CHANGED':
-                event = self._tgt.RATE_CHANGED
+                event = self._tgt.EC_RATE_CHANGED
             elif event == 'STARTUP':
-                event = self._tgt.STARTUP
+                event = self._tgt.EC_STARTUP
             elif event == 'SHUTDOWN':
-                event = self._tgt.SHUTDOWN
-            self._tgt._ec_event(int(ec_id), event)
+                event = self._tgt.EC_SHUTDOWN
+            self._tgt._ec_event(int(ec_handle), event)
         elif kind == 'PORT_PROFILE':
-            print 'PORT_PROFILE', hint
+            event, port_name = hint.split(':')
+            if event == 'ADD':
+                event = self._tgt.PORT_ADD
+            elif event == 'REMOVE':
+                event = self._tgt.PORT_REMOVE
+            elif event == 'CONNECT':
+                event = self._tgt.PORT_CONNECT
+            elif event == 'DISCONNECT':
+                event = self._tgt.PORT_DISCONNECT
+            self._tgt._port_event(port_name, event)
         elif kind == 'CONFIGURATION':
             print 'CONFIGURATION', hint
         elif kind == 'HEARTBEAT':

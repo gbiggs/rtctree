@@ -46,17 +46,19 @@ class Component(TreeNode):
 
     The following callbacks are available on this node type when it is dynamic:
 
-    - rtc_status(ec_id, status)
+    - rtc_status(ec_handle, status)
       The component's state has changed in the specified execution context. The
       new status is one of Component.INACTIVE, Component.ACTIVE,
       Component.ERROR, Component.UNKNOWN and Component.CREATED.
     - component_profile(items)
       One or more members of the component's profiles have been updated. The
       updated items are listed in the "items" argument.
-    - ec_event(ec_id, event)
+    - ec_event(ec_handle, event)
       A change in one of the attached execution contexts has occurred. The
-      event is one of Component.ATTACHED, Component.DETACHED,
-      Component.RATE_CHANGED, Component.STARTUP, and Component.SHUTDOWN.
+      event is one of Component.EC_ATTACHED, Component.EC_DETACHED,
+      Component.EC_RATE_CHANGED, Component.EC_STARTUP, and
+      Component.EC_SHUTDOWN. In the case of Component.EC_DETACHED, the callback
+      is called before the execution context facade is removed.
 
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
@@ -333,6 +335,26 @@ class Component(TreeNode):
         '''
         self._obj.exit()
 
+    def get_ec(self, ec_handle):
+        '''Get a reference to the execution context with the given handle.
+
+        @param ec_handle The handle of the execution context to look for.
+        @type ec_handle str
+        @return A reference to the ExecutionContext object corresponding to
+        the ec_handle.
+        @raises NoECWithHandleError
+
+        '''
+        with self._mutex:
+            for ec in self.owned_ecs:
+                if ec.handle == ec_handle:
+                    return ec
+            for ec in self.participating_ecs:
+                if ec.handle == ec_handle:
+                    return ec
+            raise NoECWithHandleError
+
+
     def get_ec_index(self, ec_handle):
         '''Get the index of the execution context with the given handle.
 
@@ -341,6 +363,7 @@ class Component(TreeNode):
         @return The index into the owned + participated arrays, suitable for
         use in methods such as @ref activate_in_ec, or -1 if the EC was not
         found.
+        @raises NoECWithHandleError
 
         '''
         with self._mutex:
@@ -350,7 +373,7 @@ class Component(TreeNode):
             for ii, ec in enumerate(self.participating_ecs):
                 if ec.handle == ec_handle:
                     return ii + len(self.owned_ecs)
-            return -1
+            raise NoECWithHandleError
 
     def get_state_string(self, add_colour=True):
         '''Get the state of this component as an optionally-coloured string.
@@ -868,30 +891,54 @@ class Component(TreeNode):
                 self._obs = None
                 self._obs_id = None
 
-    def _ec_event(self, ec_id, event):
-        with self._mutex:
-            if event == self.ATTACHED:
-                # New EC has been attached
-                self._participating_ecs.append(ExecutionContext(
-                    self._obj.get_context(ec_id), ec_id))
-            elif event == self.DETACHED:
+    def _ec_event(self, ec_handle, event):
+        def get_ec(ec_handle):
+            tgt_ec = None
+            loc = None
+            if self._owned_ecs:
+                for ec in self._owned_ecs:
+                    if ec.handle == ec_handle:
+                        tgt_ec = ec
+                        loc = self._owned_ecs
+                        break
+            if not del_ec and self._participating_ecs:
+                for ec in self._participating_ecs:
+                    if ec.handle == ec_handle:
+                        tgt_ec = ec
+                        loc = self._participating_ecs
+                        break
+            return tgt_ec, loc
+
+        if event == self.EC_DETACHED:
+            # Call callbacks outside the mutex, call before removing the facade
+            self._call_cb('ec_event', (ec_handle, state))
+            with self._mutex:
                 # An EC has been detached; delete the local facade
-                if self._owned_ecs:
-                    # Find the 
-                elif self._participating_ecs:
-                    pass
-                else:
-                    # Nothing to update if neither of those lists have been
-                    # built yet
-                    pass
-            elif event == self.RATE_CHANGED:
-                pass
-            elif event == self.STARTUP:
-                pass
-            elif event == self.SHUTDOWN:
-                pass
-        # Call callbacks outside the mutex
-        self._call_cb('ec_event', (ec_id, state))
+                # if ec is not None, the corresponding EC has a local
+                # facade that needs deleting
+                ec, loc = get_ec(ec_handle)
+                if ec:
+                    loc.remove(ec)
+        else:
+            with self._mutex:
+                if event == self.EC_ATTACHED:
+                    # New EC has been attached
+                    self._participating_ecs.append(ExecutionContext(
+                        self._obj.get_context(ec_handle), ec_handle))
+                elif event == self.EC_RATE_CHANGED:
+                    ec, loc = get_ec(ec_handle)
+                    if ec:
+                        ec._set_rate(float(event))
+                elif event == self.EC_STARTUP:
+                    ec, loc = get_ec(ec_handle)
+                    if ec:
+                        ec._set_running(True)
+                elif event == self.EC_SHUTDOWN:
+                    ec, loc = get_ec(ec_handle)
+                    if ec:
+                        ec._set_running(False)
+            # Call callbacks outside the mutex
+            self._call_cb('ec_event', (ec_handle, state))
 
     def _get_ec_state(self, ec):
         # Get the state of this component in an EC and return the enum value.
@@ -942,6 +989,26 @@ class Component(TreeNode):
                 self._parent_obj = ''
             self._properties = nvlist_to_dict(profile.properties)
 
+    def _port_event(self, port_name, event):
+        with self._mutex:
+            if self._ports:
+                if event == self.PORT_ADD:
+                    # New port
+                    p_obj = 
+                elif event == self.PORT_REMOVE:
+                    # Port removed
+                    p = self.get_port_by_name(port_name)
+                    self._ports.remove(p)
+                elif event == self.PORT_CONNECT:
+                    # A port has a new connection
+                    # Find and update the port
+                    p = self.get_port_by_name(port_name)
+                elif event == self.PORT_DISCONNECT:
+                    # A port has had a connection removed
+                    pass
+        # Call callbacks outside the mutex
+        self._call_cb('port_event', (port_name, event))
+
     def _profile_update(self, items):
         # Reparse the profile
         self._parse_profile()
@@ -987,40 +1054,49 @@ class Component(TreeNode):
             self._orgs = []
             self._parent_orgs = []
 
-    def _set_state_in_ec(self, ec_id, state):
+    def _set_state_in_ec(self, ec_handle, state):
         # Forcefully set the state of this component in an EC
         with self._mutex:
-            if ec_id >= len(self.owned_ecs):
-                ec_id -= len(self.owned_ecs)
-                if ec_id >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_id)
-                self.participating_ec_states[ec_id] = state
+            if ec_handle >= len(self.owned_ecs):
+                ec_handle -= len(self.owned_ecs)
+                if ec_handle >= len(self.participating_ecs):
+                    raise BadECIndexError(ec_handle)
+                self.participating_ec_states[ec_handle] = state
             else:
-                self.owned_ec_states[ec_id] = state
+                self.owned_ec_states[ec_handle] = state
         # Call callbacks outside the mutex
-        self._call_cb('rtc_status', (ec_id, state))
+        self._call_cb('rtc_status', (ec_handle, state))
 
-    ## Constant for a component in the inactive state
+    # Constant for a component in the inactive state
     INACTIVE = 1
-    ## Constant for a component in the active state
+    # Constant for a component in the active state
     ACTIVE = 2
-    ## Constant for a component in the error state
+    # Constant for a component in the error state
     ERROR = 3
-    ## Constant for a component in an unknown state
+    # Constant for a component in an unknown state
     UNKNOWN = 4
-    ## Constant for a component in the created state
+    # Constant for a component in the created state
     CREATED = 5
 
-    ## Constant for execution context event "attached"
-    ATTACHED = 6
-    ## Constant for execution context event "detached"
-    DETACHED = 7
-    ## Constant for execution context event "rate_changed"
-    RATE_CHANGED = 8
-    ## Constant for execution context event "startup"
-    STARTUP = 9
-    ## Constant for execution context event "shutdown"
-    SHUTDOWN = 10
+    # Constant for execution context event "attached"
+    EC_ATTACHED = 11
+    # Constant for execution context event "detached"
+    EC_DETACHED = 12
+    # Constant for execution context event "rate_changed"
+    EC_RATE_CHANGED = 13
+    # Constant for execution context event "startup"
+    EC_STARTUP = 14
+    # Constant for execution context event "shutdown"
+    EC_SHUTDOWN = 15
+
+    # Constant for port event 'add'
+    PORT_ADD = 21
+    # Constant for port event 'remove'
+    PORT_REMOVE = 22
+    # Constant for port event 'connect'
+    PORT_CONNECT = 23
+    # Constant for port event 'disconnect'
+    PORT_DISCONNECT = 24
 
 
 # vim: tw=79
