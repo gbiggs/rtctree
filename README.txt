@@ -366,6 +366,8 @@ Changelog
 4.0
 ---
 
+ - Support for the Logger SDO interface.
+ - Support for the ComponentObserver SDO interface.
  - Support three-or-more port connections.
  - Deprecated Port.get_connection_by_dest()
  - Added Port.get_connections_by_dest()
