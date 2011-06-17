@@ -71,7 +71,7 @@ class RTCObserver(OpenRTM__POA.ComponentObserver):
             elif event == 'UPDATE_PARAMETER':
                 event = self._tgt.CFG_UPDATE_PARAM
             elif event == 'SET_CONFIG_SET':
-                event = self._tgt.CFG_UPDATE_PARAM_IN_ACTIVE
+                event = self._tgt.CFG_SET_SET
             elif event == 'ADD_CONFIG_SET':
                 event = self._tgt.CFG_ADD_SET
             elif event == 'REMOVE_CONFIG_SET':

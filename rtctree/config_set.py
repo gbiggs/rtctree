@@ -67,6 +67,12 @@ class ConfigurationSet(object):
         '''The CORBA ConfigurationSet object this object wraps.'''
         return self._object
 
+    def _reload(self, object, description, data):
+        '''Reload the configuration set data.'''
+        self._object = object
+        self._description = description
+        self._data = data
+
 
 # vim: tw=79
 

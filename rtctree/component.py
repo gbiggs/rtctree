@@ -44,6 +44,7 @@ class Component(TreeNode):
     Component nodes store all the properties of a component, as well as
     references to the actual objects and object types used in the component.
 
+    This node can be made dynamic by setting the 'dynamic' property to True.
     The following callbacks are available on this node type when it is dynamic:
 
     - rtc_status(ec_handle, status)
@@ -57,8 +58,19 @@ class Component(TreeNode):
       A change in one of the attached execution contexts has occurred. The
       event is one of Component.EC_ATTACHED, Component.EC_DETACHED,
       Component.EC_RATE_CHANGED, Component.EC_STARTUP, and
-      Component.EC_SHUTDOWN. In the case of Component.EC_DETACHED, the callback
-      is called before the execution context facade is removed.
+      Component.EC_SHUTDOWN.
+    - port_event(port_name, event)
+      A change on the specified port has occurred. The event is one of
+      Component.PORT_ADD, Component.PORT_REMOVE, Component.PORT_CONNECT and
+      Component.PORT_DISCONNECT.
+    - config_event(config_set_name, event)
+      A change in the component's configuration sets has occurred. The event is
+      one of Component.CFG_UPDATE_SET, Component.CFG_UPDATE_PARAM,
+      Component.CFG_UPDATE_PARAM_IN_ACTIVE, Component.CFG_ADD_SET,
+      Component.CFG_REMOVE_SET and Component.CFG_ACTIVATE_SET.
+    - heartbeat(time)
+      A heartbeat was received from the component. The time the beat was
+      received is passed.
 
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
@@ -76,7 +88,8 @@ class Component(TreeNode):
         self._last_heartbeat = time.time() # RTC is alive at construction time
         super(Component, self).__init__(name=name, parent=parent,
                                         *args, **kwargs)
-        self._set_events(['rtc_status', 'component_profile', 'ec_event'])
+        self._set_events(['rtc_status', 'component_profile', 'ec_event',
+            'port_event', 'config_event', 'heartbeat'])
         self._reset_data()
         self._parse_profile()
 
@@ -865,7 +878,33 @@ class Component(TreeNode):
         raise CannotHoldChildrenError
 
     def _config_event(self, name, event):
-        pass
+        with self._mutex:
+            if self._conf_sets:
+                if event == self.CFG_UPDATE_SET:
+                    # A configuration set has been updated
+                    cs = self._conf.get_configuration_set(name)
+                    self._conf_sets[name]._reload(cs, cs.description,
+                            nvlist_to_dict(cs.configuration_data))
+                elif event == self.CFG_UPDATE_PARAM:
+                    # A parameter in a configuration set has been changed
+                    cset, param = name.split('.')
+                    cs = self._conf.get_configuration_set(cset)
+                    data = nvlist_to_dict(cs.configuration_data)
+                    self._conf_sets[cset].set_param(param, data[param])
+                elif event == self.CFG_ADD_SET:
+                    # A new configuration set has been added
+                    cs = self._conf.get_configuration_set(name)
+                    self._conf_sets[name] = ConfigurationSet(self, cs,
+                            cs.description,
+                            nvlist_to_dict(cs.configuration_data))
+                elif event == self.CFG_REMOVE_SET:
+                    # Remove the configuration set
+                    del self._conf_sets[name]
+                elif event == self.CFG_ACTIVATE_SET:
+                    # Change the active configuration set
+                    self._active_conf_set = name
+        # Call callbacks outside the mutex
+        self._call_cb('config_event', (name, event))
 
     def _enable_dynamic(self, enable=True):
         if enable:
@@ -912,36 +951,32 @@ class Component(TreeNode):
                         break
             return tgt_ec, loc
 
-        if event == self.EC_DETACHED:
-            # Call callbacks outside the mutex, call before removing the facade
-            self._call_cb('ec_event', (ec_handle, state))
-            with self._mutex:
+        with self._mutex:
+            if event == self.EC_ATTACHED:
+                # New EC has been attached
+                self._participating_ecs.append(ExecutionContext(
+                    self._obj.get_context(ec_handle), ec_handle))
+            elif event == self.EC_DETACHED:
                 # An EC has been detached; delete the local facade
                 # if ec is not None, the corresponding EC has a local
                 # facade that needs deleting
                 ec, loc = get_ec(ec_handle)
                 if ec:
                     loc.remove(ec)
-        else:
-            with self._mutex:
-                if event == self.EC_ATTACHED:
-                    # New EC has been attached
-                    self._participating_ecs.append(ExecutionContext(
-                        self._obj.get_context(ec_handle), ec_handle))
-                elif event == self.EC_RATE_CHANGED:
-                    ec, loc = get_ec(ec_handle)
-                    if ec:
-                        ec._set_rate(float(event))
-                elif event == self.EC_STARTUP:
-                    ec, loc = get_ec(ec_handle)
-                    if ec:
-                        ec._set_running(True)
-                elif event == self.EC_SHUTDOWN:
-                    ec, loc = get_ec(ec_handle)
-                    if ec:
-                        ec._set_running(False)
-            # Call callbacks outside the mutex
-            self._call_cb('ec_event', (ec_handle, state))
+            elif event == self.EC_RATE_CHANGED:
+                ec, loc = get_ec(ec_handle)
+                if ec:
+                    ec._set_rate(float(event))
+            elif event == self.EC_STARTUP:
+                ec, loc = get_ec(ec_handle)
+                if ec:
+                    ec._set_running(True)
+            elif event == self.EC_SHUTDOWN:
+                ec, loc = get_ec(ec_handle)
+                if ec:
+                    ec._set_running(False)
+        # Call callbacks outside the mutex
+        self._call_cb('ec_event', (ec_handle, state))
 
     def _get_ec_state(self, ec):
         # Get the state of this component in an EC and return the enum value.
@@ -961,6 +996,7 @@ class Component(TreeNode):
     def _heartbeat(self):
         # Received a heart beat
         self._last_heartbeat = time.time()
+        self._call_cb('heartbeat', self._last_heartbeat)
 
     def _parse_configuration(self):
         # Parse the component's configuration sets
@@ -1109,6 +1145,19 @@ class Component(TreeNode):
     PORT_CONNECT = 23
     # Constant for port event 'disconnect'
     PORT_DISCONNECT = 24
+
+    # Constant for configuration set event 'update_set'
+    CFG_UPDATE_SET = 31
+    # Constant for configuration set event 'update_param'
+    CFG_UPDATE_PARAM = 32
+    # Constant for configuration set event 'set_active_set'
+    CFG_SET_SET = 33
+    # Constant for configuration set event 'add_set'
+    CFG_ADD_SET = 34
+    # Constant for configuration set event 'remove_set'
+    CFG_REMOVE_SET = 35
+    # Constant for configuration set event 'activate_set'
+    CFG_ACTIVATE_SET = 36
 
 
 # vim: tw=79
