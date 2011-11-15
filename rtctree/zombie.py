@@ -34,14 +34,14 @@ class Zombie(TreeNode):
     name still registered on the name server.
 
     '''
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, *args, **kwargs):
         '''Constructor.
 
         @param name Name of this object (i.e. its entry in the path).
         @param parent The parent node of this node, if any.
 
         '''
-        super(Zombie, self).__init__(name, parent)
+        super(Zombie, self).__init__(name=name, parent=parent, *args, **kwargs)
 
     @property
     def is_zombie(self):
