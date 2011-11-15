@@ -188,7 +188,37 @@ class Component(TreeNode):
             return self._version
 
     ###########################################################################
-    # Composite component information
+    # Composite component information and management
+
+    def add_members(self, rtcs):
+        '''Add other RT Components to this composite component as members.
+
+        This component must be a composite component.
+
+        '''
+        if not self.is_composite:
+            raise NotCompositeError(self.name)
+        org = self.organisations[0].obj
+        org.add_members([x.object for x in rtcs])
+
+    def remove_members(self, rtcs):
+        '''Remove other RT Components from this composite component.
+
+        This component must be a composite component.
+
+        '''
+        if not self.is_composite:
+            raise NotCompositeError(self.name)
+        org = self.organisations[0].obj
+        members = org.get_members()
+        for rtc in rtcs:
+            # Check if the RTC actually is a member
+            def is_equiv(x):
+                return rtc.object._is_equivalent(x)
+            if True not in map(is_equiv, members):
+                raise NotInCompositionError(self.name, rtc.instance_name)
+            # Remove the RTC from the composition
+            org.remove_member(rtc.instance_name)
 
     @property
     def composite_parent(self):
@@ -218,13 +248,14 @@ class Component(TreeNode):
         return self._members
 
     @property
-    def orgs(self):
+    def organisations(self):
         '''The organisations of this composition.'''
         class Org:
-            def __init__(self, sdo_id, org_id, members):
+            def __init__(self, sdo_id, org_id, members, obj):
                 self.sdo_id = sdo_id
                 self.org_id = org_id
                 self.members = members
+                self.obj = obj
 
         with self._mutex:
             if not self._orgs:
@@ -236,7 +267,7 @@ class Component(TreeNode):
                         sdo_id = ''
                     org_id = org.get_organization_id()
                     members = [m.get_sdo_id() for m in org.get_members()]
-                    self._orgs.append(Org(sdo_id, org_id, members))
+                    self._orgs.append(Org(sdo_id, org_id, members, org))
         return self._orgs
 
     @property
@@ -258,7 +289,7 @@ class Component(TreeNode):
                 for sdo in self._obj.get_organizations() if sdo]
 
     @property
-    def parent_orgs(self):
+    def parent_organisations(self):
         '''The organisations this RTC belongs to.'''
         class ParentOrg:
             def __init__(self, sdo_id, org_id):

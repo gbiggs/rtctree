@@ -260,5 +260,19 @@ class NoLoggerError(RtcTreeError):
                 self.args[0], self.args[1])
 
 
+class NotCompositeError(RtcTreeError):
+    '''The component is not a composite component.'''
+    def __str__(self):
+        return 'Component {0} is not a composite component.'.format(
+                self.args[0])
+
+
+class NotInCompositionError(RtcTreeError):
+    '''The component is not a member of the specified composite component.'''
+    def __str__(self):
+        return 'Component {0} is not a member of composition {1}.'.format(
+                self.args[1], self.args[0])
+
+
 # vim: tw=79
 
