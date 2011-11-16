@@ -285,7 +285,7 @@ class Component(TreeNode):
                 self._members = {}
                 for o in self.organisations:
                     # TODO: Search for these in the tree
-                    self._members[o.org_id] = o.members
+                    self._members[o.org_id] = o.obj.get_members()
         return self._members
 
     @property
