@@ -198,11 +198,20 @@ class Component(TreeNode):
         '''
         if not self.is_composite:
             raise NotCompositeError(self.name)
+        for rtc in rtcs:
+            if self.is_member(rtc):
+                raise AlreadyInCompositionError(self.name, rtc.instance_name)
         org = self.organisations[0].obj
         org.add_members([x.object for x in rtcs])
+        # Force a reparse of the member information
+        self._orgs = []
 
     def remove_members(self, rtcs):
         '''Remove other RT Components from this composite component.
+
+        rtcs is a list of components to remove. Each element must be either an
+        rtctree.Component object or a string containing a component's instance
+        name. rtctree.Component objects are more reliable.
 
         This component must be a composite component.
 
@@ -212,13 +221,17 @@ class Component(TreeNode):
         org = self.organisations[0].obj
         members = org.get_members()
         for rtc in rtcs:
+            if type(rtc) == str:
+                rtc_name = rtc
+            else:
+                rtc_name = rtc.instance_name
             # Check if the RTC actually is a member
-            def is_equiv(x):
-                return rtc.object._is_equivalent(x)
-            if True not in map(is_equiv, members):
-                raise NotInCompositionError(self.name, rtc.instance_name)
+            if not self.is_member(rtc):
+                raise NotInCompositionError(self.name, rtc_name)
             # Remove the RTC from the composition
-            org.remove_member(rtc.instance_name)
+            org.remove_member(rtc_name)
+        # Force a reparse of the member information
+        self._orgs = []
 
     @property
     def composite_parent(self):
@@ -239,12 +252,40 @@ class Component(TreeNode):
         '''Is the component a member of a composite component.'''
         return self._obj.get_organizations() != []
 
+    def is_member(self, rtc):
+        '''Is the given component a member of this composition?
+
+        rtc may be a Component object or a string containing a component's
+        instance name. Component objects are more reliable.
+
+        Returns False if the given component is not a member of this
+        composition.
+
+        Raises NotCompositeError if this component is not a composition.
+
+        '''
+        if not self.is_composite:
+            raise NotCompositeError(self.name)
+        members = self.organisations[0].obj.get_members()
+        if type(rtc) is str:
+            for m in members:
+                if m.get_component_profile().instance_name == rtc:
+                    return True
+        else:
+            for m in members:
+                if m._is_equivalent(rtc.object):
+                    return True
+        return False
+
     @property
     def members(self):
         '''Member components if this component is composite.'''
         with self._mutex:
             if not self._members:
-                self._members = []
+                self._members = {}
+                for o in self.organisations:
+                    # TODO: Search for these in the tree
+                    self._members[o.org_id] = o.members
         return self._members
 
     @property
@@ -1132,6 +1173,7 @@ class Component(TreeNode):
         with self._mutex:
             self._orgs = []
             self._parent_orgs = []
+            self._members = {}
 
     def _set_state_in_ec(self, ec_handle, state):
         # Forcefully set the state of this component in an EC

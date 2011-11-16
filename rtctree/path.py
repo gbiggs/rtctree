@@ -103,6 +103,9 @@ def format_path(path):
         port = ':' + path[1]
     else:
         port = ''
+    if type(path[0]) is str:
+        # Don't add slashes if the path is singular
+        return path[0] + port
     if path[0][0] == '/':
         starter = '/'
         path = path[0][1:]

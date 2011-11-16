@@ -274,5 +274,12 @@ class NotInCompositionError(RtcTreeError):
                 self.args[1], self.args[0])
 
 
+class AlreadyInCompositionError(RtcTreeError):
+    '''The component is already a member of the composite component.'''
+    def __str__(self):
+        return 'Component {0} is already a member of composition {1}.'.format(
+                self.args[1], self.args[0])
+
+
 # vim: tw=79
 
