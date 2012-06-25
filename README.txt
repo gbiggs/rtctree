@@ -366,6 +366,7 @@ Changelog
 4.0
 ---
 
+ - Added complete support for the ExecutionContext interface.
  - Support for the Logger SDO interface.
  - Support for the ComponentObserver SDO interface.
  - Support three-or-more port connections.

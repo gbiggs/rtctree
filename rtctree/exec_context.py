@@ -88,11 +88,11 @@ class ExecutionContext(object):
 
         '''
         with self._mutex:
-            if self._kind == self.PERIODIC:
+            if self.kind == self.PERIODIC:
                 result = 'Periodic', ['reset']
-            elif self._kind == self.EVENT_DRIVEN:
+            elif self.kind == self.EVENT_DRIVEN:
                 result = 'Event-driven', ['reset']
-            elif self._kind == self.OTHER:
+            elif self.kind == self.OTHER:
                 result = 'Other', ['reset']
         if add_colour:
             return build_attr_string(result[1], supported=add_colour) + \
@@ -127,6 +127,16 @@ class ExecutionContext(object):
         else:
             return result[0]
 
+    def start(self):
+        '''Start the context.'''
+        with self._mutex:
+            self._obj.start()
+
+    def stop(self):
+        '''Stop the context.'''
+        with self._mutex:
+            self._obj.stop()
+
     @property
     def handle(self):
         '''The handle of this execution context.'''
@@ -137,7 +147,13 @@ class ExecutionContext(object):
     def kind(self):
         '''The kind of this execution context.'''
         with self._mutex:
-            return self._kind
+            kind = self._obj.get_kind()
+            if kind == RTC.PERIODIC:
+                return self.PERIODIC
+            elif kind == RTC.EVENT_DRIVEN:
+                return self.EVENT_DRIVEN
+            else:
+                return self.OTHER
 
     @property
     def kind_string(self):
@@ -182,13 +198,18 @@ class ExecutionContext(object):
     def rate(self):
         '''The execution rate of this execution context.'''
         with self._mutex:
-            return self._rate
+            return self._obj.get_rate()
+
+    @rate.setter
+    def rate(self, new_rate):
+        with self._mutex:
+            self._obj.set_rate(new_rate)
 
     @property
     def running(self):
         '''Is this execution context running?'''
         with self._mutex:
-            return self._running
+            return self._obj.is_running()
 
     @property
     def running_string(self):
@@ -198,32 +219,10 @@ class ExecutionContext(object):
     def _parse(self):
         # Parse the ExecutionContext object.
         with self._mutex:
-            if self._obj.is_running():
-                self._running = True
-            else:
-                self._running = False
-
             profile = self._obj.get_profile()
-            self._rate = profile.rate
-            if profile.kind == RTC.PERIODIC:
-                self._kind = self.PERIODIC
-            elif profile.kind == RTC.EVENT_DRIVEN:
-                self._kind = self.EVENT_DRIVEN
-            else:
-                self._kind = self.OTHER
             self._owner = profile.owner
             self._participants = profile.participants
             self._properties = nvlist_to_dict(profile.properties)
-
-    def _set_rate(self, rate):
-        # Alter the stored execution rate value
-        with self._mutex:
-            self._rate = rate
-
-    def _set_running(self, running):
-        # Alter the running state
-        with self._mutex:
-            self._running = running
 
     ## Constant for a periodic execution context.
     PERIODIC = 1

@@ -1036,9 +1036,8 @@ class Component(TreeNode):
                 if ec:
                     loc.remove(ec)
             elif event == self.EC_RATE_CHANGED:
-                ec, loc = get_ec(ec_handle)
-                if ec:
-                    ec._set_rate(float(event))
+                # Nothing to do
+                pass
             elif event == self.EC_STARTUP:
                 ec, loc = get_ec(ec_handle)
                 if ec:
