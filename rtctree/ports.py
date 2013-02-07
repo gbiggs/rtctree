@@ -100,14 +100,14 @@ class Port(object):
             if self.porttype == 'DataInPort' or self.porttype == 'DataOutPort':
                 for prop in props:
                     if prop in self.properties:
-                        if props[prop] not in self.properties[prop] and \
-                                'Any' not in self.properties[prop]:
+                        if props[prop] not in [x.strip() for x in self.properties[prop].split(',')] and \
+                                'any' not in self.properties[prop].lower():
                             # Invalid property selected
                             raise IncompatibleDataPortConnectionPropsError
                     for d in dests:
                         if prop in d.properties:
-                            if props[prop] not in d.properties[prop] and \
-                                    'Any' not in d.properties[prop]:
+                            if props[prop] not in [x.strip() for x in d.properties[prop].split(',')] and \
+                                    'any' not in d.properties[prop].lower():
                                 # Invalid property selected
                                 raise IncompatibleDataPortConnectionPropsError
             if not name:
