@@ -108,12 +108,12 @@ class Directory(TreeNode):
                 self._process_binding(binding, orb, filter)
             if bindings_it:
                 # Handle the iterator containing the remaining bindings
-                remaining, bindings = bindings_it[1].next_n(Options().\
+                remaining, bindings = bindings_it.next_n(Options().\
                                             get_option('max_bindings'))
                 while remaining:
                     for binding in bindings:
                         self._process_binding(binding, orb, filter)
-                    remaining, binding = bindings_it[1].next_n(Options().\
+                    remaining, binding = bindings_it.next_n(Options().\
                                                 get_option('max_bindings'))
                 bindings_it.destroy()
 
