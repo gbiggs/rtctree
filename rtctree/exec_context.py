@@ -38,7 +38,12 @@ class ExecutionContext(object):
 
         '''
         super(ExecutionContext, self).__init__(*args, **kwargs)
+        self._is_service = True
         self._obj = ec_obj._narrow(RTC.ExecutionContextService)
+        if not self._obj:
+            # EC does not implement the ExecutionContextService interface
+            self._is_service = False
+            self._obj = ec_obj
         self._handle = handle
         self._mutex = threading.RLock()
         self._parse()
@@ -219,10 +224,15 @@ class ExecutionContext(object):
     def _parse(self):
         # Parse the ExecutionContext object.
         with self._mutex:
-            profile = self._obj.get_profile()
-            self._owner = profile.owner
-            self._participants = profile.participants
-            self._properties = nvlist_to_dict(profile.properties)
+            if self._is_service:
+                profile = self._obj.get_profile()
+                self._owner = profile.owner
+                self._participants = profile.participants
+                self._properties = nvlist_to_dict(profile.properties)
+            else:
+                self._owner = None
+                self._participants = []
+                self._properties = []
 
     ## Constant for a periodic execution context.
     PERIODIC = 1
