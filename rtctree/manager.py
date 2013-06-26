@@ -342,6 +342,9 @@ class Manager(TreeNode):
 
     def _parse_manager_children(self):
         # Parses the list returned by _obj.get_slave_managers into child nodes.
+        if 'get_slave_managers' not in dir(self._obj):
+            # This manager does not support slave managers; ignore
+            return
         with self._mutex:
             mgrs = self._obj.get_slave_managers()
             index = 0
