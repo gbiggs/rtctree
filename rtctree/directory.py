@@ -201,7 +201,7 @@ def corba_name_to_string(name):
             parts.append(nc.id)
         else:
             parts.append('{0}.{1}'.format(nc.id, nc.kind))
-    return string.join(parts, '/')
+    return '/'.join(parts)
 
 
 # vim: tw=79
