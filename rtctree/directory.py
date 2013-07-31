@@ -118,7 +118,7 @@ class Directory(TreeNode):
                 bindings_it.destroy()
 
     def _process_binding(self, binding, orb, filter):
-        if filtered([URI.nameToString(binding.binding_name)], filter):
+        if filtered([corba_name_to_string(binding.binding_name)], filter):
             # Do not pass anything which does not pass the filter
             return
         trimmed_filter = trim_filter(deepcopy(filter))
@@ -129,7 +129,7 @@ class Directory(TreeNode):
                 # This is a leaf node; either a component or a manager.  The
                 # specific type can be determined from the binding name kind.
                 if binding.binding_name[0].kind == 'mgr':
-                    name = URI.nameToString(binding.binding_name)
+                    name = corba_name_to_string(binding.binding_name)
                     obj = self._context.resolve(binding.binding_name)
                     if not obj:
                         leaf = Zombie(name, self)
@@ -145,7 +145,7 @@ class Directory(TreeNode):
                         leaf = Zombie(name, self)
                     self._add_child(leaf)
                 elif binding.binding_name[0].kind == 'rtc':
-                    name = URI.nameToString(binding.binding_name)
+                    name = corba_name_to_string(binding.binding_name)
                     obj = self._context.resolve(binding.binding_name)
                     try:
                         obj = obj._narrow(RTC.RTObject)
@@ -172,13 +172,13 @@ class Directory(TreeNode):
                     self._add_child(leaf)
                 else:
                     # Unknown type - add a plain node
-                    name = URI.nameToString(binding.binding_name)
+                    name = corba_name_to_string(binding.binding_name)
                     obj = self._context.resolve(binding.binding_name)
                     leaf = Unknown(name, self, obj)
                     self._add_child(leaf)
             else:
                 # This is a context, and therefore a subdirectory.
-                subdir_name = URI.nameToString(binding.binding_name)
+                subdir_name = corba_name_to_string(binding.binding_name)
                 subdir = Directory(subdir_name, self, filter=trimmed_filter,
                         dynamic=self.dynamic)
                 subdir_context = self._context.resolve(binding.binding_name)
@@ -186,6 +186,22 @@ class Directory(TreeNode):
                 subdir._parse_context(subdir_context, orb,
                         filter=trimmed_filter)
                 self._add_child(subdir)
+
+
+def corba_name_to_string(name):
+    '''Convert a CORBA CosNaming.Name to a string.'''
+    parts = []
+    if type(name) is not list and type(name) is not tuple:
+        raise NotCORBANameError(name)
+    if len(name) == 0:
+        raise NotCORBANameError(name)
+
+    for nc in name:
+        if not nc.kind:
+            parts.append(nc.id)
+        else:
+            parts.append('{0}.{1}'.format(nc.id, nc.kind))
+    return string.join(parts, '/')
 
 
 # vim: tw=79

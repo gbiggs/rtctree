@@ -281,5 +281,11 @@ class AlreadyInCompositionError(RtcTreeError):
                 self.args[1], self.args[0])
 
 
+class NotCORBANameError(RtcTreeError):
+    '''A passed parameter is not a valid CORBA CosNaming.Name.'''
+    def __str__(self):
+        return 'Not a CORBA CosNaming.Name: {0}'.format(self.args[0])
+
+
 # vim: tw=79
 
