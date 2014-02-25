@@ -79,6 +79,9 @@ class Directory(TreeNode):
         '''
         with self._mutex:
             id, sep, kind = name.rpartition('.')
+            if not id:
+                id = kind
+                kind = ''
             name = CosNaming.NameComponent(id=str(id), kind=str(kind))
             try:
                 self.context.unbind([name])
