@@ -374,6 +374,11 @@ Changelog
  - Added Port.get_connections_by_dest()
  - Added Port.get_connections_by_dests()
 
+3.0.1
+-----
+
+- Compatibility release for rtshell-3.0.1.
+
 3.0
 ---
 
