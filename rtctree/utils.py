@@ -132,7 +132,7 @@ def get_terminal_size():
                                                             '0000'))
         except ImportError:
             return None
-        except IOError, e:
+        except IOError as e:
             return None
         return cr[1], cr[0]
 
@@ -161,7 +161,7 @@ def get_terminal_size():
 def dict_to_nvlist(dict):
     '''Convert a dictionary into a CORBA namevalue list.'''
     result = []
-    for item in dict.keys() :
+    for item in list(dict.keys()):
         result.append(SDOPackage.NameValue(item, any.to_any(dict[item])))
     return result
 

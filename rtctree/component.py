@@ -827,7 +827,7 @@ class Component(TreeNode):
     @property
     def loggers(self):
         '''Returns the list of logger IDs attached to this component.'''
-        return self._loggers.keys()
+        return list(self._loggers.keys())
 
     @property
     def object(self):

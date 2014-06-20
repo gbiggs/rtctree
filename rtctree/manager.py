@@ -18,6 +18,8 @@ Object representing a manager node in the tree.
 '''
 
 
+from __future__ import print_function
+
 from omniORB import CORBA, TRANSIENT_ConnectFailed, UNKNOWN_UserException
 import os.path
 import sys
@@ -34,7 +36,6 @@ from rtctree.exceptions import FailedToLoadModuleError, \
 from rtctree.node import TreeNode
 from rtctree.utils import nvlist_to_dict
 import RTC
-
 
 ##############################################################################
 ## Manager node object
@@ -113,7 +114,7 @@ class Manager(TreeNode):
             with self._mutex:
                 if self._obj.load_module(path, init_func) != RTC.RTC_OK:
                     raise FailedToLoadModuleError(path)
-        except CORBA.UNKNOWN, e:
+        except CORBA.UNKNOWN as e:
             if e.args[0] == UNKNOWN_UserException:
                 raise FailedToLoadModuleError(path, 'CORBA User Exception')
             else:
@@ -328,9 +329,9 @@ class Manager(TreeNode):
         with self._mutex:
             try:
                 comps = self._obj.get_components()
-            except CORBA.BAD_PARAM, e:
-                print >>sys.stderr, '{0}: {1}'.format(
-                        os.path.basename(sys.argv[0]), e)
+            except CORBA.BAD_PARAM as e:
+                print('{0}: {1}'.format(os.path.basename(sys.argv[0]), e),
+                        file=sys.stderr)
                 return
             for c in comps:
                 # Get the instance profile - this will be the node's name
@@ -353,11 +354,11 @@ class Manager(TreeNode):
                 # Add each slave manager as a child node.
                 try:
                     props = nvlist_to_dict(m.get_profile().properties)
-                except CORBA.TRANSIENT, e:
+                except CORBA.TRANSIENT as e:
                     if e.args[0] == TRANSIENT_ConnectFailed:
-                        print >>sys.stderr, '{0}: Warning: zombie slave of '\
+                        print('{0}: Warning: zombie slave of '\
                                 'manager {1} found'.format(sys.argv[0],
-                                        self.name)
+                                        self.name), file=sys.stderr)
                         continue
                     else:
                         raise

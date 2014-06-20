@@ -88,7 +88,7 @@ class NameServer(Directory):
                 raise InvalidServiceError(address)
             try:
                 root_context = self._ns_obj._narrow(CosNaming.NamingContext)
-            except CORBA.TRANSIENT, e:
+            except CORBA.TRANSIENT as e:
                 if e.args[0] == TRANSIENT_ConnectFailed:
                     raise InvalidServiceError(address)
                 else:

@@ -152,7 +152,7 @@ class Directory(TreeNode):
                     obj = self._context.resolve(binding.binding_name)
                     try:
                         obj = obj._narrow(RTC.RTObject)
-                    except CORBA.TRANSIENT, e:
+                    except CORBA.TRANSIENT as e:
                         if e.args[0] == TRANSIENT_ConnectFailed:
                             self._add_child(Zombie(name, self))
                             return
@@ -166,7 +166,7 @@ class Directory(TreeNode):
                     except CORBA.OBJECT_NOT_EXIST:
                         # Component zombie
                         leaf = Zombie(name, self, dynamic=self.dynamic)
-                    except CORBA.TRANSIENT, e:
+                    except CORBA.TRANSIENT as e:
                         if e.args[0] == TRANSIENT_ConnectFailed:
                             self._add_child(Zombie(name, self))
                             return
