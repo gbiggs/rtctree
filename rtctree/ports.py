@@ -153,10 +153,13 @@ class Port(object):
             for c in self.connections:
                 if not c.has_port(self):
                     continue
+                has_dest = False
                 for d in dests:
-                    if not c.has_port(d):
-                        continue
-                res.append(c)
+                    if c.has_port(d):
+                        has_dest = True
+                        break
+                if has_dest:
+                    res.append(c)
             return res
 
     def get_connection_by_id(self, id):

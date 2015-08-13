@@ -374,6 +374,8 @@ Changelog
  - Deprecated Port.get_connection_by_dest()
  - Added Port.get_connections_by_dest()
  - Added Port.get_connections_by_dests()
+ - Fixed a bug where finding a connection with a given destination would return
+   all connections on the port.
 
 3.0.1
 -----
