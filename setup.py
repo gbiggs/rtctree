@@ -103,7 +103,7 @@ class CustomBuild(build.build):
 
 
 setup(name='rtctree',
-      version='3.0.0',
+      version='4.0.0',
       description='API for interacting with running RT Components and \
 managing RTM-based systems.',
       long_description='API for interacting with running RT Components and \
