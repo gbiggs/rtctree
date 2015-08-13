@@ -16,9 +16,10 @@ This software is developed at the National Institute of Advanced
 Industrial Science and Technology. Approval number H23PRO-1229. The
 development was financially supported by the New Energy and Industrial
 Technology Development Organisation Project for Strategic Development of
-Advanced Robotics Elemental Technologies.  This software is licensed
-under the Eclipse Public License -v 1.0 (EPL). See LICENSE.TXT.
+Advanced Robotics Elemental Technologies.
 
+This software is licensed under the GNU Lesser General Public License version 3
+(LGPL3). See LICENSE.txt.
 
 Requirements
 ============

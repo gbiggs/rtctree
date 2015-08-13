@@ -4,15 +4,15 @@
 
 '''rtctree
 
-Copyright (C) 2009-2014
+Copyright (C) 2009-2015
     Geoffrey Biggs
     RT-Synthesis Research Group
     Intelligent Systems Research Institute,
     National Institute of Advanced Industrial Science and Technology (AIST),
     Japan
     All rights reserved.
-Licensed under the Eclipse Public License -v 1.0 (EPL)
-http://www.opensource.org/licenses/eclipse-1.0.txt
+Licensed under the GNU Lesser General Public License version 3.
+http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 rtctree install script.
 
@@ -111,11 +111,11 @@ managing RTM-based systems.',
       author='Geoffrey Biggs',
       author_email='git@killbots.net',
       url='http://github.com/gbiggs/rtctree',
-      license='EPL',
+      license='LGPL3',
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
-          'License :: OSI Approved :: EPL License',
+          'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
           'Natural Language :: English',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.6',
