@@ -98,7 +98,7 @@ class CustomBuild(build.build):
 
 
 setuptools.setup(name='rtctree',
-  version='4.1.0',
+  version='4.2.0',
   description='API for interacting with running RT Components and \
 managing RTM-based systems.',
   long_description='API for interacting with running RT Components and \
