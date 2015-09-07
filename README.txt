@@ -1,11 +1,11 @@
 =======
-rtctree
+RTCTree
 =======
 
 Introduction
 ============
 
-rtctree is a Python library providing an easy-to-use API for interacting
+RTCTree is a Python library providing an easy-to-use API for interacting
 with running RT Components and RTM-based systems running on
 OpenRTM-aist-1. It allows developers to manage these systems from
 other programs without needing to learn the CORBA API. Components can be
@@ -24,11 +24,11 @@ This software is licensed under the GNU Lesser General Public License version 3
 Requirements
 ============
 
-rtctree requires omniorb-py, including omniidl with the Python backend.
+RTCTree requires omniorb-py, including omniidl with the Python backend.
 If you have installed OpenRTM-python, you will have these installed
 already. If not, you will need to install them manually.
 
-rtctree uses the new string formatting operations that were introduced
+RTCTree uses the new string formatting operations that were introduced
 in Python 2.6. It will not function with an earlier version of Python.
 It has not been tested with Python 3 and it is likely that several
 changes will be necessary to make it function using this version of
@@ -50,7 +50,7 @@ There are several methods of installation available:
 
    a) Extract the source, e.g. to a directory /home/blag/src/rtctree
 
-   b) Run setup.py to install rtctree to your default Python
+   b) Run setup.py to install RTCTree to your default Python
    installation::
 
       $ python setup.py install
@@ -135,7 +135,7 @@ connect ports to each other, start and stop components, etc.
 
 All nodes in the tree also store the CORBA object reference to the
 object they represent. By accessing this object, you can call the IDL
-methods. If something is not currently available in rtctree, calling the
+methods. If something is not currently available in RTCTree, calling the
 IDL method on the CORBA object directly will be able to achieve what you
 want to do.
 
@@ -325,7 +325,7 @@ source code for usage examples.
 API naming conventions
 ======================
 
-rtctree follows the standard Python naming conventions as laid out in
+RTCTree follows the standard Python naming conventions as laid out in
 PEP8_.
 
 Most importantly, the private, internal API functions begin with an
@@ -343,7 +343,7 @@ Further documentation and examples
 For further documentation, see the generated API documentation.
 
 For examples, see the rtshell set of utilities. These illustrate using
-rtctree to perform most of the actions possible using RTSystemEditor.
+RTCTree to perform most of the actions possible using RTSystemEditor.
 
 
 Repository
@@ -414,7 +414,7 @@ Changelog
  - Catch more zombies
  - Handle unknown CORBA object types
  - Handle the case of unknown port owners
- - Added locks to make rtctree objects thread-safe
+ - Added locks to make RTCTree objects thread-safe
  - Added API for forcing a re-parse of any object in the tree
  - Cleaned up ``__init__`` functions for proper inheritence handling
  - New API call to get the state of a component in a specific EC
