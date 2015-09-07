@@ -7,7 +7,7 @@ Introduction
 
 rtctree is a Python library providing an easy-to-use API for interacting
 with running RT Components and RTM-based systems running on
-OpenRTM-aist-1.0. It allows developers to manage these systems from
+OpenRTM-aist-1. It allows developers to manage these systems from
 other programs without needing to learn the CORBA API. Components can be
 started, stopped, connected together, have their configuration changed,
 and so on.
