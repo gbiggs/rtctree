@@ -364,6 +364,11 @@ repository. This is better if you wish to contribute patches.
 Changelog
 =========
 
+4.1
+---
+
+ - Switched setup from distutils to setuptools
+
 4.0
 ---
 

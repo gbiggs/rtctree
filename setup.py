@@ -18,10 +18,10 @@ rtctree install script.
 
 '''
 
-from setuptools import setup, find_packages
-
 import os
 import os.path
+import setuptools
+from distutils.command import build
 import subprocess
 import sys
 
@@ -31,7 +31,7 @@ def gen_idl_name(dir, name):
   return os.path.join(dir, name + '.idl')
 
 
-class BuildIDL(Command):
+class BuildIDL(setuptools.Command):
   '''Implemented the build IDL subcommand.'''
 
   description = 'Generate Python stubs from IDL files'
@@ -97,39 +97,41 @@ class CustomBuild(build.build):
           ]
 
 
-setup(name='rtctree',
-    version='4.0.0',
-    description='API for interacting with running RT Components and \
+setuptools.setup(name='rtctree',
+  version='4.1.0',
+  description='API for interacting with running RT Components and \
 managing RTM-based systems.',
-    long_description='API for interacting with running RT Components and \
+  long_description='API for interacting with running RT Components and \
 managing RTM-based systems.',
-    author='Geoffrey Biggs',
-    author_email='git@killbots.net',
-    url='http://github.com/gbiggs/rtctree',
-    license='LGPL3',
-    classifiers=[
-      'Development Status :: 5 - Production/Stable',
-      'Intended Audience :: Developers',
-      'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
-      'Natural Language :: English',
-      'Operating System :: OS Independent',
-      'Programming Language :: Python :: 2.6',
-      'Programming Language :: Python :: 2.7',
-      'Topic :: Software Development',
-      ],
-    packages=['rtctree',
-        'rtctree.rtmidl',
-        'rtctree.rtmidl.OpenRTM',
-        'rtctree.rtmidl.OpenRTM__POA',
-        'rtctree.rtmidl.RTC',
-        'rtctree.rtmidl.RTC__POA',
-        'rtctree.rtmidl.RTM',
-        'rtctree.rtmidl.RTM__POA',
-        'rtctree.rtmidl.SDOPackage',
-        'rtctree.rtmidl.SDOPackage__POA'],
-    cmdclass={'build':CustomBuild, 'build_idl': BuildIDL}
-    )
+  author='Geoffrey Biggs',
+  author_email='geoffrey.biggs@aist.go.jp',
+  url='http://github.com/gbiggs/rtctree',
+  license='LGPL3',
+  classifiers=[
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
+    'Natural Language :: English',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2.7',
+    'Topic :: Software Development',
+    ],
 
+  packages=['rtctree',
+      'rtctree.rtmidl',
+      'rtctree.rtmidl.OpenRTM',
+      'rtctree.rtmidl.OpenRTM__POA',
+      'rtctree.rtmidl.RTC',
+      'rtctree.rtmidl.RTC__POA',
+      'rtctree.rtmidl.RTM',
+      'rtctree.rtmidl.RTM__POA',
+      'rtctree.rtmidl.SDOPackage',
+      'rtctree.rtmidl.SDOPackage__POA'],
 
-# vim: tw=79
+  include_package_data = True,
+  cmdclass={'build':CustomBuild, 'build_idl': BuildIDL},
+  zip_safe = True
+  )
 
+#  vim: set ts=2 sw=2 tw=79 :
