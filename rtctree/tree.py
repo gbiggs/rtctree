@@ -153,6 +153,8 @@ class RTCTree(object):
     def is_component(self, path):
         '''Is the node pointed to by @ref path a component?'''
         node = self.get_node(path)
+        if not node:
+            return False
         return node.is_component
 
     def is_directory(self, path):
@@ -161,11 +163,15 @@ class RTCTree(object):
 
         '''
         node = self.get_node(path)
+        if not node:
+            return False
         return node.is_directory
 
     def is_manager(self, path):
         '''Is the node pointed to by @ref path a manager?'''
         node = self.get_node(path)
+        if not node:
+            return False
         return node.is_manager
 
     def is_nameserver(self, path):
@@ -174,16 +180,22 @@ class RTCTree(object):
 
         '''
         node = self.get_node(path)
+        if not node:
+            return False
         return node.is_nameserver
 
     def is_unknown(self, path):
         '''Is the node pointed to by @ref path an unknown object?'''
         node = self.get_node(path)
+        if not node:
+            return True
         return node.is_unknown
 
     def is_zombie(self, path):
         '''Is the node pointed to by @ref path a zombie object?'''
         node = self.get_node(path)
+        if not node:
+            return False
         return node.is_zombie
 
     def iterate(self, func, args=None, filter=[]):
