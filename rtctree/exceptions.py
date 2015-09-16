@@ -19,7 +19,7 @@ General exception classes.
 
 
 import rtctree
-import RTC
+from rtctree.rtc import RTC
 
 
 ##############################################################################
@@ -287,5 +287,4 @@ class NotCORBANameError(RtcTreeError):
         return 'Not a CORBA CosNaming.Name: {0}'.format(self.args[0])
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

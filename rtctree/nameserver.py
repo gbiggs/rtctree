@@ -21,7 +21,7 @@ Object representing a name server node in the tree.
 import CosNaming
 from omniORB import CORBA, TRANSIENT_ConnectFailed
 
-from rtctree.exceptions import *
+from rtctree import exceptions
 from rtctree.directory import Directory
 
 
@@ -85,18 +85,17 @@ class NameServer(Directory):
             try:
                 self._ns_obj = self._orb.string_to_object(self._full_address)
             except CORBA.ORB.InvalidName:
-                raise InvalidServiceError(address)
+                raise exceptions.InvalidServiceError(address)
             try:
                 root_context = self._ns_obj._narrow(CosNaming.NamingContext)
             except CORBA.TRANSIENT as e:
                 if e.args[0] == TRANSIENT_ConnectFailed:
-                    raise InvalidServiceError(address)
+                    raise exceptions.InvalidServiceError(address)
                 else:
                     raise
             if CORBA.is_nil(root_context):
-                raise FailedToNarrowRootNamingError(address)
+                raise exceptions.FailedToNarrowRootNamingError(address)
             return root_context
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

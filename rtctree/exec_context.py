@@ -18,10 +18,10 @@ Object representing an execution context.
 '''
 
 
-import RTC
 import threading
 
-from rtctree.utils import build_attr_string, nvlist_to_dict
+from rtctree import utils
+from rtctree.rtc import RTC
 
 
 ##############################################################################
@@ -100,8 +100,8 @@ class ExecutionContext(object):
             elif self.kind == self.OTHER:
                 result = 'Other', ['reset']
         if add_colour:
-            return build_attr_string(result[1], supported=add_colour) + \
-                    result[0] + build_attr_string('reset', supported=add_colour)
+            return utils.build_attr_string(result[1], supported=add_colour) + \
+                    result[0] + utils.build_attr_string('reset', supported=add_colour)
         else:
             return result[0]
 
@@ -127,8 +127,8 @@ class ExecutionContext(object):
             else:
                 result = 'Stopped', ['reset']
         if add_colour:
-            return build_attr_string(result[1], supported=add_colour) + \
-                    result[0] + build_attr_string('reset', supported=add_colour)
+            return utils.build_attr_string(result[1], supported=add_colour) + \
+                    result[0] + utils.build_attr_string('reset', supported=add_colour)
         else:
             return result[0]
 
@@ -228,7 +228,7 @@ class ExecutionContext(object):
                 profile = self._obj.get_profile()
                 self._owner = profile.owner
                 self._participants = profile.participants
-                self._properties = nvlist_to_dict(profile.properties)
+                self._properties = utils.nvlist_to_dict(profile.properties)
             else:
                 self._owner = None
                 self._participants = []
@@ -242,5 +242,4 @@ class ExecutionContext(object):
     OTHER = 3
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

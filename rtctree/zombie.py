@@ -17,8 +17,7 @@ Object representing a zombie node in the tree.
 
 '''
 
-
-from rtctree.exceptions import *
+from rtctree import exceptions
 from rtctree.node import TreeNode
 
 
@@ -54,8 +53,7 @@ class Zombie(TreeNode):
 
     def _add_child(self):
         # Zombies cannot contain children.
-        raise CannotHoldChildrenError
+        raise exceptions.CannotHoldChildrenError
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=2 softtabstop=2 textwidth=79

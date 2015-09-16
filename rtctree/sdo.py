@@ -18,9 +18,7 @@ SDO client objects.
 '''
 
 
-import OpenRTM__POA
-import RTC
-import SDOPackage
+from rtctree.rtc import OpenRTM__POA
 
 
 class RTCObserver(OpenRTM__POA.ComponentObserver):
@@ -93,5 +91,4 @@ class RTCLogger(OpenRTM__POA.Logger):
         self._cb(self._tgt.name, ts, loggername, level, message)
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

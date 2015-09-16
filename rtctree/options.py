@@ -20,7 +20,7 @@ Singleton containing option values.
 
 import sys
 
-from rtctree.exceptions import NoSuchOptionError
+from rtctree import exceptions
 
 
 ##############################################################################
@@ -44,9 +44,8 @@ class Options(object):
         if not hasattr(self, 'options'):
             self.init_options()
         if not option in self.options:
-            raise NoSuchOptionError(option)
+            raise exceptions.NoSuchOptionError(option)
         return self.options[option]
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

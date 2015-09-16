@@ -20,22 +20,17 @@ Object representing a manager node in the tree.
 
 from __future__ import print_function
 
-from omniORB import CORBA, TRANSIENT_ConnectFailed, UNKNOWN_UserException
 import os.path
 import sys
 
+from omniORB import CORBA, TRANSIENT_ConnectFailed, UNKNOWN_UserException
+
+from rtctree import exceptions
+from rtctree import utils
 from rtctree.component import Component
-from rtctree.exceptions import FailedToLoadModuleError, \
-                               FailedToCreateComponentError, \
-                               FailedToDeleteComponentError, \
-                               FailedToSetConfigurationError, \
-                               FailedToAddMasterManagerError, \
-                               FailedToRemoveMasterManagerError, \
-                               FailedToAddSlaveManagerError, \
-                               FailedToRemoveSlaveManagerError
 from rtctree.node import TreeNode
-from rtctree.utils import nvlist_to_dict
-import RTC
+from rtctree.rtc import RTC
+
 
 ##############################################################################
 ## Manager node object
@@ -77,7 +72,7 @@ class Manager(TreeNode):
         '''
         with self._mutex:
             if not self._obj.create_component(module_name):
-                raise FailedToCreateComponentError(module_name)
+                raise exceptions.FailedToCreateComponentError(module_name)
             # The list of child components will have changed now, so it must be
             # reparsed.
             self._parse_component_children()
@@ -94,7 +89,7 @@ class Manager(TreeNode):
         '''
         with self._mutex:
             if self._obj.delete_component(instance_name) != RTC.RTC_OK:
-                raise FailedToDeleteComponentError(instance_name)
+                raise exceptions.FailedToDeleteComponentError(instance_name)
             # The list of child components will have changed now, so it must be
             # reparsed.
             self._parse_component_children()
@@ -113,10 +108,10 @@ class Manager(TreeNode):
         try:
             with self._mutex:
                 if self._obj.load_module(path, init_func) != RTC.RTC_OK:
-                    raise FailedToLoadModuleError(path)
+                    raise exceptions.FailedToLoadModuleError(path)
         except CORBA.UNKNOWN as e:
             if e.args[0] == UNKNOWN_UserException:
-                raise FailedToLoadModuleError(path, 'CORBA User Exception')
+                raise exceptions.FailedToLoadModuleError(path, 'CORBA User Exception')
             else:
                 raise
 
@@ -155,7 +150,7 @@ class Manager(TreeNode):
             if not self._factory_profiles:
                 self._factory_profiles = []
                 for fp in self._obj.get_factory_profiles():
-                    self._factory_profiles.append(nvlist_to_dict(fp.properties))
+                    self._factory_profiles.append(utils.nvlist_to_dict(fp.properties))
         return self._factory_profiles
 
     ##########################################################################
@@ -171,7 +166,7 @@ class Manager(TreeNode):
         '''
         with self._mutex:
             if self._obj.set_configuration(param, value) != RTC.RTC_OK:
-                raise FailedToSetConfigurationError(param, value)
+                raise exceptions.FailedToSetConfigurationError(param, value)
             # Force a reparse of the configuration
             self._configuration = None
 
@@ -180,7 +175,7 @@ class Manager(TreeNode):
         '''The configuration dictionary of the manager.'''
         with self._mutex:
             if not self._configuration:
-                self._configuration = nvlist_to_dict(self._obj.get_configuration())
+                self._configuration = utils.nvlist_to_dict(self._obj.get_configuration())
         return self._configuration
 
     @property
@@ -189,7 +184,7 @@ class Manager(TreeNode):
         with self._mutex:
             if not self._profile:
                 profile = self._obj.get_profile()
-                self._profile = nvlist_to_dict(profile.properties)
+                self._profile = utils.nvlist_to_dict(profile.properties)
         return self._profile
 
     ##########################################################################
@@ -248,7 +243,7 @@ class Manager(TreeNode):
             if not self._loadable_modules:
                 self._loadable_modules = []
                 for mp in self._obj.get_loadable_modules():
-                    self._loadable_modules.append(nvlist_to_dict(mp.properties))
+                    self._loadable_modules.append(utils.nvlist_to_dict(mp.properties))
         return self._loadable_modules
 
     @property
@@ -258,7 +253,7 @@ class Manager(TreeNode):
             if not self._loaded_modules:
                 self._loaded_modules = []
                 for mp in self._obj.get_loaded_modules():
-                    self._loaded_modules.append(nvlist_to_dict(mp.properties))
+                    self._loaded_modules.append(utils.nvlist_to_dict(mp.properties))
         return self._loaded_modules
 
     @property
@@ -294,7 +289,7 @@ class Manager(TreeNode):
         # masters. new_master should be a rtctree.manager.Manager object.
         with self._mutex:
             if self._obj.add_master_manager(new_master.object) != RTC.RTC_OK:
-                raise FailedToAddMasterManagerError
+                raise exceptions.FailedToAddMasterManagerError
 
     def _add_slave(self, new_slave):
         # Add a slave to this manager. Master managers can hold slave managers,
@@ -303,7 +298,7 @@ class Manager(TreeNode):
         # new_slave should be a rtctree.manager.Manager object.
         with self._mutex:
             if self._obj.add_save_manager(new_slave.object) != RTC.RTC_OK:
-                raise FailedToAddSlaveManagerError(self.name, new_slave.name)
+                raise exceptions.FailedToAddSlaveManagerError(self.name, new_slave.name)
 
     def _parse(self):
         # Nearly everything is delay-parsed when it is first accessed.
@@ -353,7 +348,7 @@ class Manager(TreeNode):
             for m in mgrs:
                 # Add each slave manager as a child node.
                 try:
-                    props = nvlist_to_dict(m.get_profile().properties)
+                    props = utils.nvlist_to_dict(m.get_profile().properties)
                 except CORBA.TRANSIENT as e:
                     if e.args[0] == TRANSIENT_ConnectFailed:
                         print('{0}: Warning: zombie slave of '\
@@ -375,7 +370,7 @@ class Manager(TreeNode):
         # masters. new_master should be a rtctree.manager.Manager object.
         with self._mutex:
             if self._obj.remove_master_manager(master.object) != RTC.RTC_OK:
-                raise FailedToRemoveMasterManagerError
+                raise exceptions.FailedToRemoveMasterManagerError
 
     def _remove_slave(self, slave):
         # Remove a slave from this manager. Master managers can hold slave
@@ -383,7 +378,7 @@ class Manager(TreeNode):
         # rtctree.manager.Manager object.
         with self._mutex:
             if self._obj.remove_slave_manager(slave.object) != RTC.RTC_OK:
-                raise FailedToRemoveSlaveManagerError(self.name, slave.name)
+                raise exceptions.FailedToRemoveSlaveManagerError(self.name, slave.name)
 
     def _set_parent(self, new_parent):
         # When setting the parent of a manager node, we need to tell wrapped
@@ -400,5 +395,4 @@ class Manager(TreeNode):
             self.parent = new_parent
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

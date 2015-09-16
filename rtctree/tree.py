@@ -18,20 +18,20 @@ of name servers, directories, managers and components.
 
 '''
 
-from copy import deepcopy
-from omniORB import CORBA
+import copy
 import os
 import sys
 
+from omniORB import CORBA
+
+from rtctree import exceptions
 from rtctree import NAMESERVERS_ENV_VAR, ORB_ARGS_ENV_VAR
-from rtctree.exceptions import *
-from rtctree.path import BadPathError
+from rtctree import utils
 from rtctree.node import TreeNode
 from rtctree.directory import Directory
 from rtctree.nameserver import NameServer
 from rtctree.manager import Manager
 from rtctree.component import Component
-from rtctree.utils import filtered, trim_filter
 
 
 ##############################################################################
@@ -86,14 +86,14 @@ class RTCTree(object):
         if paths:
             if type(paths[0]) == str:
                 if paths[0][0] != '/':
-                    raise NonRootPathError(paths[0])
+                    raise exceptions.NonRootPathError(paths[0])
                 if len(paths) > 1:
                     self.add_name_server(paths[1], filter=filter,
                             dynamic=dynamic)
             else:
                 for p in paths:
                     if p[0] != '/':
-                        raise NonRootPathError(p)
+                        raise exceptions.NonRootPathError(p)
                     if len(p) > 1:
                         self.add_name_server(p[1], filter=filter,
                                 dynamic=dynamic)
@@ -292,11 +292,10 @@ class RTCTree(object):
 
     def _parse_name_server(self, address, filter=[], dynamic=False):
         # Parse a single name server and add it to the root node.
-        if not filtered(['/', address], filter):
+        if not utils.filtered(['/', address], filter):
             new_ns_node = NameServer(self._orb, address, self._root,
-                    trim_filter(deepcopy(filter), 2), dynamic=dynamic)
+                    utils.trim_filter(copy.deepcopy(filter), 2), dynamic=dynamic)
             self._root._add_child(new_ns_node)
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

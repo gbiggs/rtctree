@@ -23,11 +23,11 @@ create the correct type of port object automatically.
 '''
 
 
-import RTC
 import threading
 
-from rtctree.exceptions import *
-from rtctree.utils import build_attr_string, dict_to_nvlist, nvlist_to_dict
+from rtctree import exceptions
+from rtctree import utils
+from rtctree.rtc import RTC
 
 
 ##############################################################################
@@ -45,7 +45,7 @@ def parse_port(port_obj, owner):
 
     '''
     profile = port_obj.get_port_profile()
-    props = nvlist_to_dict(profile.properties)
+    props = utils.nvlist_to_dict(profile.properties)
     if props['port.port_type'] == 'DataInPort':
         return DataInPort(port_obj, owner)
     elif props['port.port_type'] == 'DataOutPort':
@@ -103,21 +103,21 @@ class Port(object):
                         if props[prop] not in [x.strip() for x in self.properties[prop].split(',')] and \
                                 'any' not in self.properties[prop].lower():
                             # Invalid property selected
-                            raise IncompatibleDataPortConnectionPropsError
+                            raise exceptions.IncompatibleDataPortConnectionPropsError
                     for d in dests:
                         if prop in d.properties:
                             if props[prop] not in [x.strip() for x in d.properties[prop].split(',')] and \
                                     'any' not in d.properties[prop].lower():
                                 # Invalid property selected
-                                raise IncompatibleDataPortConnectionPropsError
+                                raise exceptions.IncompatibleDataPortConnectionPropsError
             if not name:
                 name = self.name + '_'.join([d.name for d in dests])
-            props = dict_to_nvlist(props)
+            props = utils.dict_to_nvlist(props)
             profile = RTC.ConnectorProfile(name, id,
                     [self._obj] + [d._obj for d in dests], props)
             return_code, profile = self._obj.connect(profile)
             if return_code != RTC.RTC_OK:
-                raise FailedToConnectError(return_code)
+                raise exceptions.FailedToConnectError(return_code)
             self.reparse_connections()
             for d in dests:
                 d.reparse_connections()
@@ -250,7 +250,7 @@ class Port(object):
         with self._mutex:
             profile = self._obj.get_port_profile()
             self._name = profile.name
-            self._properties = nvlist_to_dict(profile.properties)
+            self._properties = utils.nvlist_to_dict(profile.properties)
             if self.owner:
                 prefix = self.owner.instance_name + '.'
                 if self._name.startswith(prefix):
@@ -299,10 +299,10 @@ class DataPort(Port):
             ptypes = [d.porttype for d in dests]
             if self.porttype == 'DataInPort':
                 if 'DataOutPort' not in ptypes:
-                    raise WrongPortTypeError
+                    raise exceptions.WrongPortTypeError
             if self.porttype == 'DataOutPort':
                 if 'DataInPort' not in ptypes:
-                    raise WrongPortTypeError
+                    raise exceptions.WrongPortTypeError
             if 'dataport.dataflow_type' not in new_props:
                 new_props['dataport.dataflow_type'] = 'push'
             if 'dataport.interface_type' not in new_props:
@@ -377,25 +377,25 @@ class CorbaPort(Port):
             # polarity
             for d in dests:
                 if not d.porttype == 'CorbaPort':
-                    raise WrongPortTypeError
+                    raise exceptions.WrongPortTypeError
             # Check the interfaces and their respective polarities match
             if self.interfaces:
                 for d in dests:
                     if not d.interfaces:
-                        raise MismatchedInterfacesError
+                        raise exceptions.MismatchedInterfacesError
                 for intf in self.interfaces:
                     for d in dests:
                         match = d.get_interface_by_instance_name(
                                     intf.instance_name)
                         if not match:
-                            raise MismatchedInterfacesError
+                            raise exceptions.MismatchedInterfacesError
                         if intf.polarity == match.polarity:
                             # Polarity should be opposite
-                            raise MismatchedPolarityError
+                            raise exceptions.MismatchedPolarityError
             else:
                 for d in dests:
                     if d.interfaces:
-                        raise MismatchedInterfacesError
+                        raise exceptions.MismatchedInterfacesError
             # Make the connection
             new_props = props.copy()
             if 'port.port_type' not in new_props:
@@ -459,8 +459,8 @@ class SvcInterface(object):
             elif self.polarity == self.REQUIRED:
                 result = 'Required', ['reset']
             if add_colour:
-                return build_attr_string(result[1], supported=add_colour) + \
-                        result[0] + build_attr_string('reset',
+                return utils.build_attr_string(result[1], supported=add_colour) + \
+                        result[0] + utils.build_attr_string('reset',
                                 supported=add_colour)
             else:
                 return result[0]
@@ -537,7 +537,7 @@ class Connection(object):
         '''Disconnect this connection.'''
         with self._mutex:
             if not self.ports:
-                raise NotConnectedError
+                raise exceptions.NotConnectedError
             # Some of the connection participants may not be in the tree,
             # causing the port search in self.ports to return ('Unknown', None)
             # for those participants. Search the list to find the first
@@ -548,7 +548,7 @@ class Connection(object):
                 p = self.ports[ii][1]
                 ii += 1
             if not p:
-                raise UnknownConnectionOwnerError
+                raise exceptions.UnknownConnectionOwnerError
             p.object.disconnect(self.id)
 
     def has_port(self, port):
@@ -652,8 +652,7 @@ class Connection(object):
             self._name = self._obj.name
             self._id = self._obj.connector_id
             self._ports = None
-            self._properties = nvlist_to_dict(self._obj.properties)
+            self._properties = utils.nvlist_to_dict(self._obj.properties)
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

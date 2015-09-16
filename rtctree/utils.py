@@ -18,10 +18,11 @@ of name servers, directories, managers and components.
 
 '''
 
-
-from omniORB import any
-import SDOPackage
 import sys
+
+import omniORB
+
+from rtctree.rtc import SDOPackage
 
 
 ##############################################################################
@@ -162,7 +163,7 @@ def dict_to_nvlist(dict):
     '''Convert a dictionary into a CORBA namevalue list.'''
     result = []
     for item in list(dict.keys()):
-        result.append(SDOPackage.NameValue(item, any.to_any(dict[item])))
+        result.append(SDOPackage.NameValue(item, omniORB.any.to_any(dict[item])))
     return result
 
 
@@ -204,5 +205,4 @@ def trim_filter(filter, levels=1):
     return [f for f in trimmed if f]
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

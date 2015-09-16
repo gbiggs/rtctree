@@ -18,7 +18,7 @@ Object representing an unknown node in the tree.
 '''
 
 
-from rtctree.exceptions import *
+from rtctree import exceptions
 from rtctree.node import TreeNode
 
 
@@ -62,8 +62,7 @@ class Unknown(TreeNode):
 
     def _add_child(self):
         # Unknowns cannot contain children.
-        raise CannotHoldChildrenError
+        raise exceptions.CannotHoldChildrenError
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

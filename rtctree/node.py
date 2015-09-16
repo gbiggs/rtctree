@@ -20,7 +20,7 @@ Object representing a generic node in the tree.
 
 import threading
 
-from rtctree.exceptions import NotRelatedError, NoSuchEventError
+from rtctree import exceptions
 
 
 ##############################################################################
@@ -328,7 +328,7 @@ class TreeNode(object):
         # Remove a child from this node.
         with self._mutex:
             if child.name not in self._children:
-                raise NotRelatedError(self.name, child.name)
+                raise exceptions.NotRelatedError(self.name, child.name)
             del self._children[child.name]
 
     @parent.setter
@@ -383,5 +383,4 @@ class TreeNode(object):
             self._cbs[e] = []
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

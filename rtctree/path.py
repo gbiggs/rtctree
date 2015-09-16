@@ -19,7 +19,7 @@ etc.
 '''
 
 
-from rtctree.exceptions import BadPathError
+from rtctree import exceptions
 
 
 ##############################################################################
@@ -61,7 +61,7 @@ def parse_path(path):
     '''
     bits = path.lstrip('/').split('/')
     if not bits:
-        raise BadPathError(path)
+        raise exceptions.BadPathError(path)
 
     if bits[-1]:
         bits[-1], port = get_port(bits[-1])
@@ -89,7 +89,7 @@ def get_port(path):
     elif len(split_path) == 2:
         return split_path[0], split_path[1]
     else:
-        raise BadPathError(path)
+        raise exceptions.BadPathError(path)
 
 
 def format_path(path):
@@ -115,5 +115,4 @@ def format_path(path):
     return starter + '/'.join(path) + port
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

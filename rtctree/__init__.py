@@ -19,21 +19,9 @@ themselves, and managers.
 '''
 
 
-# Add the IDL path to the Python path
-import sys
-import os
-_openrtm_idl_path = os.path.join(os.path.dirname(__file__), 'rtmidl')
-if _openrtm_idl_path not in sys.path:
-    sys.path.insert(1, _openrtm_idl_path)
-del _openrtm_idl_path
-del os
-del sys
-
-
 RTCTREE_VERSION = '4.1.0'
 NAMESERVERS_ENV_VAR = 'RTCTREE_NAMESERVERS'
 ORB_ARGS_ENV_VAR = 'RTCTREE_ORB_ARGS'
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

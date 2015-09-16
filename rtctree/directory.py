@@ -18,21 +18,22 @@ Object representing a directory node in the tree.
 '''
 
 
-from copy import deepcopy
-import CosNaming
-from omniORB import URI, CORBA, TRANSIENT_ConnectFailed
+import copy
 import sys
 
+import CosNaming
+from omniORB import CORBA, TRANSIENT_ConnectFailed
+
+from rtctree import exceptions
+from rtctree import utils
 from rtctree.component import Component
-from rtctree.exceptions import BadPathError
 from rtctree.manager import Manager
 from rtctree.node import TreeNode
 from rtctree.options import Options
 from rtctree.unknown import Unknown
 from rtctree.zombie import Zombie
-from rtctree.utils import filtered, trim_filter
-import RTC
-import RTM
+from rtctree.rtc import RTC
+from rtctree.rtc import RTM
 
 
 ##############################################################################
@@ -86,7 +87,7 @@ class Directory(TreeNode):
             try:
                 self.context.unbind([name])
             except CosNaming.NamingContext.NotFound:
-                raise BadPathError(name)
+                raise exceptions.BadPathError(name)
 
     @property
     def context(self):
@@ -121,10 +122,10 @@ class Directory(TreeNode):
                 bindings_it.destroy()
 
     def _process_binding(self, binding, orb, filter):
-        if filtered([corba_name_to_string(binding.binding_name)], filter):
+        if utils.filtered([corba_name_to_string(binding.binding_name)], filter):
             # Do not pass anything which does not pass the filter
             return
-        trimmed_filter = trim_filter(deepcopy(filter))
+        trimmed_filter = utils.trim_filter(copy.deepcopy(filter))
         with self._mutex:
             # Process a binding, creating the correct child type for it and
             # adding that child to this node's children.
@@ -207,5 +208,4 @@ def corba_name_to_string(name):
     return '/'.join(parts)
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

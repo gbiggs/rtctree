@@ -17,19 +17,18 @@ Object representing a component node in the tree.
 
 '''
 
-
-import RTC
-import SDOPackage
 import time
 import uuid
 
+from rtctree import exceptions
+from rtctree import ports
+from rtctree import sdo
+from rtctree import utils
 from rtctree.config_set import ConfigurationSet
-from rtctree.exceptions import *
 from rtctree.exec_context import ExecutionContext
 from rtctree.node import TreeNode
-import rtctree.sdo
-from rtctree.ports import parse_port
-from rtctree.utils import build_attr_string, nvlist_to_dict, dict_to_nvlist
+from rtctree.rtc import RTC
+from rtctree.rtc import SDOPackage
 
 
 ##############################################################################
@@ -197,10 +196,10 @@ class Component(TreeNode):
 
         '''
         if not self.is_composite:
-            raise NotCompositeError(self.name)
+            raise exceptions.NotCompositeError(self.name)
         for rtc in rtcs:
             if self.is_member(rtc):
-                raise AlreadyInCompositionError(self.name, rtc.instance_name)
+                raise exceptions.AlreadyInCompositionError(self.name, rtc.instance_name)
         org = self.organisations[0].obj
         org.add_members([x.object for x in rtcs])
         # Force a reparse of the member information
@@ -217,7 +216,7 @@ class Component(TreeNode):
 
         '''
         if not self.is_composite:
-            raise NotCompositeError(self.name)
+            raise exceptions.NotCompositeError(self.name)
         org = self.organisations[0].obj
         members = org.get_members()
         for rtc in rtcs:
@@ -227,7 +226,7 @@ class Component(TreeNode):
                 rtc_name = rtc.instance_name
             # Check if the RTC actually is a member
             if not self.is_member(rtc):
-                raise NotInCompositionError(self.name, rtc_name)
+                raise exceptions.NotInCompositionError(self.name, rtc_name)
             # Remove the RTC from the composition
             org.remove_member(rtc_name)
         # Force a reparse of the member information
@@ -265,7 +264,7 @@ class Component(TreeNode):
 
         '''
         if not self.is_composite:
-            raise NotCompositeError(self.name)
+            raise exceptions.NotCompositeError(self.name)
         members = self.organisations[0].obj.get_members()
         if type(rtc) is str:
             for m in members:
@@ -382,7 +381,7 @@ class Component(TreeNode):
             if ec_index >= len(self.owned_ecs):
                 ec_index -= len(self.owned_ecs)
                 if ec_index >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_index)
+                    raise exceptions.BadECIndexError(ec_index)
                 ec = self.participating_ecs[ec_index]
             else:
                 ec = self.owned_ecs[ec_index]
@@ -404,7 +403,7 @@ class Component(TreeNode):
             if ec_index >= len(self.owned_ecs):
                 ec_index -= len(self.owned_ecs)
                 if ec_index >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_index)
+                    raise exceptions.BadECIndexError(ec_index)
                 ec = self.participating_ecs[ec_index]
             else:
                 ec = self.owned_ecs[ec_index]
@@ -437,7 +436,7 @@ class Component(TreeNode):
             for ec in self.participating_ecs:
                 if ec.handle == ec_handle:
                     return ec
-            raise NoECWithHandleError
+            raise exceptions.NoECWithHandleError
 
 
     def get_ec_index(self, ec_handle):
@@ -458,7 +457,7 @@ class Component(TreeNode):
             for ii, ec in enumerate(self.participating_ecs):
                 if ec.handle == ec_handle:
                     return ii + len(self.owned_ecs)
-            raise NoECWithHandleError
+            raise exceptions.NoECWithHandleError
 
     def get_state_string(self, add_colour=True):
         '''Get the state of this component as an optionally-coloured string.
@@ -480,8 +479,8 @@ class Component(TreeNode):
             elif self.state == self.CREATED:
                 result = 'Created', ['reset']
         if add_colour:
-            return build_attr_string(result[1], supported=add_colour) + \
-                    result[0] + build_attr_string('reset', supported=add_colour)
+            return utils.build_attr_string(result[1], supported=add_colour) + \
+                    result[0] + utils.build_attr_string('reset', supported=add_colour)
         else:
             return result[0]
 
@@ -501,7 +500,7 @@ class Component(TreeNode):
             if ec_index >= len(self.owned_ecs):
                 ec_index -= len(self.owned_ecs)
                 if ec_index >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_index)
+                    raise exceptions.BadECIndexError(ec_index)
                 state = self.participating_ec_states[ec_index]
             else:
                 state = self.owned_ec_states[ec_index]
@@ -516,8 +515,8 @@ class Component(TreeNode):
         elif state == self.CREATED:
             result = 'Created', ['reset']
         if add_colour:
-            return build_attr_string(result[1], supported=add_colour) + \
-                    result[0] + build_attr_string('reset',
+            return utils.build_attr_string(result[1], supported=add_colour) + \
+                    result[0] + utils.build_attr_string('reset',
                     supported=add_colour)
         else:
             return result[0]
@@ -537,7 +536,7 @@ class Component(TreeNode):
             if ec_index >= len(self.owned_ecs):
                 ec_index -= len(self.owned_ecs)
                 if ec_index >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_index)
+                    raise exceptions.BadECIndexError(ec_index)
                 ec = self.participating_ecs[ec_index]
             else:
                 ec = self.owned_ecs[ec_index]
@@ -559,7 +558,7 @@ class Component(TreeNode):
             if ec_index >= len(self.owned_ecs):
                 ec_index -= len(self.owned_ecs)
                 if ec_index >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_index)
+                    raise exceptions.BadECIndexError(ec_index)
                 return self.participating_ec_states[ec_index]
             else:
                 return self.owned_ec_states[ec_index]
@@ -584,7 +583,7 @@ class Component(TreeNode):
             if ec_index >= len(self.owned_ecs):
                 ec_index -= len(self.owned_ecs)
                 if ec_index >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_index)
+                    raise exceptions.BadECIndexError(ec_index)
                 state = self._get_ec_state(self.participating_ecs[ec_index])
                 self.participating_ec_states[ec_index] = state
             else:
@@ -798,7 +797,7 @@ class Component(TreeNode):
         '''The list of all ports belonging to this component.'''
         with self._mutex:
             if not self._ports:
-                self._ports = [parse_port(port, self) \
+                self._ports = [ports.parse_port(port, self) \
                                for port in self._obj.get_ports()]
         return self._ports
 
@@ -857,7 +856,7 @@ class Component(TreeNode):
             intf_type = obs._this()._NP_RepositoryId
             props = {'logger.log_level': level,
                     'logger.filter': filters}
-            props = dict_to_nvlist(props)
+            props = utils.dict_to_nvlist(props)
             sprof = SDOPackage.ServiceProfile(id=uuid_val.get_bytes(),
                     interface_type=intf_type, service=obs._this(),
                     properties=props)
@@ -866,7 +865,7 @@ class Component(TreeNode):
             if res:
                 self._loggers[uuid_val] = obs
                 return uuid_val
-            raise AddLoggerError(self.name)
+            raise exceptions.AddLoggerError(self.name)
 
     def remove_logger(self, cb_id):
         '''Remove a logger.
@@ -876,7 +875,7 @@ class Component(TreeNode):
 
         '''
         if cb_id not in self._loggers:
-            raise NoLoggerError(cb_id, self.name)
+            raise exceptions.NoLoggerError(cb_id, self.name)
         conf = self.object.get_configuration()
         res = conf.remove_service_profile(cb_id.get_bytes())
         del self._loggers[cb_id]
@@ -892,7 +891,7 @@ class Component(TreeNode):
         '''
         with self._mutex:
             if not set_name in self.conf_sets:
-                raise NoSuchConfSetError(set_name)
+                raise exceptions.NoSuchConfSetError(set_name)
             self._conf.activate_configuration_set(set_name)
 
     def set_conf_set_value(self, set_name, param, value):
@@ -907,9 +906,9 @@ class Component(TreeNode):
         '''
         with self._mutex:
             if not set_name in self.conf_sets:
-                raise NoSuchConfSetError(set_name)
+                raise exceptions.NoSuchConfSetError(set_name)
             if not self.conf_sets[set_name].has_param(param):
-                raise NoSuchConfParamError(param)
+                raise exceptions.NoSuchConfParamError(param)
             self.conf_sets[set_name].set_param(param, value)
             self._conf.set_configuration_set_values(\
                     self.conf_sets[set_name].object)
@@ -947,7 +946,7 @@ class Component(TreeNode):
 
     def _add_child(self):
         # Components cannot contain children.
-        raise CannotHoldChildrenError
+        raise exceptions.CannotHoldChildrenError
 
     def _config_event(self, name, event):
         with self._mutex:
@@ -956,19 +955,19 @@ class Component(TreeNode):
                     # A configuration set has been updated
                     cs = self._conf.get_configuration_set(name)
                     self._conf_sets[name]._reload(cs, cs.description,
-                            nvlist_to_dict(cs.configuration_data))
+                            utils.nvlist_to_dict(cs.configuration_data))
                 elif event == self.CFG_UPDATE_PARAM:
                     # A parameter in a configuration set has been changed
                     cset, param = name.split('.')
                     cs = self._conf.get_configuration_set(cset)
-                    data = nvlist_to_dict(cs.configuration_data)
+                    data = utils.nvlist_to_dict(cs.configuration_data)
                     self._conf_sets[cset].set_param(param, data[param])
                 elif event == self.CFG_ADD_SET:
                     # A new configuration set has been added
                     cs = self._conf.get_configuration_set(name)
                     self._conf_sets[name] = ConfigurationSet(self, cs,
                             cs.description,
-                            nvlist_to_dict(cs.configuration_data))
+                            utils.nvlist_to_dict(cs.configuration_data))
                 elif event == self.CFG_REMOVE_SET:
                     # Remove the configuration set
                     del self._conf_sets[name]
@@ -983,7 +982,7 @@ class Component(TreeNode):
             obs = rtctree.sdo.RTCObserver(self)
             uuid_val = uuid.uuid4().get_bytes()
             intf_type = obs._this()._NP_RepositoryId
-            props = dict_to_nvlist({'heartbeat.enable': 'YES',
+            props = utils.dict_to_nvlist({'heartbeat.enable': 'YES',
                 'heartbeat.interval': '1.0',
                 'observed_status': 'ALL'})
             sprof = SDOPackage.ServiceProfile(id=uuid_val,
@@ -1076,7 +1075,7 @@ class Component(TreeNode):
             self._conf_sets = {}
             for cs in self._conf.get_configuration_sets():
                 self._conf_sets[cs.id] = ConfigurationSet(self, cs, cs.description,
-                        nvlist_to_dict(cs.configuration_data))
+                        utils.nvlist_to_dict(cs.configuration_data))
             try:
                 self._active_conf_set = self._conf.get_active_configuration_set().id
             except SDOPackage.NotAvailable:
@@ -1097,7 +1096,7 @@ class Component(TreeNode):
                         profile.parent.get_component_profile().instance_name
             else:
                 self._parent_obj = ''
-            self._properties = nvlist_to_dict(profile.properties)
+            self._properties = utils.nvlist_to_dict(profile.properties)
 
     def _port_event(self, port_name, event):
         def get_port_obj(port_name):
@@ -1112,7 +1111,7 @@ class Component(TreeNode):
                 if event == self.PORT_ADD:
                     # New port
                     p_obj = get_port_obj(port_name)
-                    self._ports.append(parse_port(p_obj, self))
+                    self._ports.append(ports.parse_port(p_obj, self))
                 elif event == self.PORT_REMOVE:
                     # Port removed
                     p = self.get_port_by_name(port_name)
@@ -1180,7 +1179,7 @@ class Component(TreeNode):
             if ec_handle >= len(self.owned_ecs):
                 ec_handle -= len(self.owned_ecs)
                 if ec_handle >= len(self.participating_ecs):
-                    raise BadECIndexError(ec_handle)
+                    raise exceptions.BadECIndexError(ec_handle)
                 self.participating_ec_states[ec_handle] = state
             else:
                 self.owned_ec_states[ec_handle] = state
@@ -1232,5 +1231,4 @@ class Component(TreeNode):
     CFG_ACTIVATE_SET = 36
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

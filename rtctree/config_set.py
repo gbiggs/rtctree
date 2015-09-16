@@ -18,7 +18,8 @@ Object representing a configuration set.
 '''
 
 
-from rtctree.utils import dict_to_nvlist
+from rtctree import utils
+
 
 ##############################################################################
 ## Configuration set object
@@ -50,7 +51,7 @@ class ConfigurationSet(object):
     def set_param(self, param, value):
         '''Set a parameter in this configuration set.'''
         self.data[param] = value
-        self._object.configuration_data = dict_to_nvlist(self.data)
+        self._object.configuration_data = utils.dict_to_nvlist(self.data)
 
     @property
     def data(self):
@@ -74,5 +75,4 @@ class ConfigurationSet(object):
         self._data = data
 
 
-# vim: tw=79
-
+# vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79
