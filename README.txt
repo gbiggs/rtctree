@@ -32,34 +32,35 @@ RTCTree requires Python 2.7. It will not function with an earlier version of
 Python. It has not been tested with Python 3 and it is likely that several
 changes will be necessary to make it function using this version of Python.
 
+Sphinx must be installed to build the documentation.
+
 
 Installation
 ============
 
 There are several methods of installation available:
 
- 1. Download the source from either the repository (see "Repository,"
- below) or a source archive, extract it somewhere, and install it into
- your Python distribution:
 
-   a) Extract the source, e.g. to a directory /home/blag/src/rtctree
+1. (Preferred method) Use pip to install the PyPi package.
 
-   b) Run setup.py to install RTCTree to your default Python
-   installation::
+ a. Install pip if it is not already installed.
+    See https://pip.pypa.io/en/latest/installing/
 
-      $ python setup.py install
+ b. Execute the following command to install RTCTree::
 
-   c) If necessary, set environment variables. These should be set by
-   default, but if not you will need to set them yourself. On Windows,
-   you will need to ensure that your Python site-packages directory is
-   in the PYTHONPATH variable and the Python scripts directory is in the
-   PATH variable.  Typically, these will be something like
-   ``C:\Python27\Lib\site-packages\`` and ``C:\Python27\Scripts\``,
-   respectively (assuming Python 2.7 installed in ``C:\Python27\``).
+    $ pip install rtctree
 
- 2. Use the Windows installer. This will perform the same job as running
- setup.py (see #2), but saves opening a command prompt. You may still
- need to add paths to your environment variables (see step c, above).
+2. Download the source from either the repository (see "Repository," below) or
+   a source archive, extract it somewhere, and install it into your Python
+   distribution:
+
+ a. Extract the source, e.g. to a directory /home/blag/src/rtctree
+
+ b. Run setup.py to install RTCTree to your default Python installation::
+
+    $ python setup.py install
+
+3. On Windows, use the Windows installer.
 
 
 Environment variables
