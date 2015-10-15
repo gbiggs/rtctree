@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+    xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Module Id="RTCTree41"
+    Language="1033"
+    Codepage="1252"
+    Version="4.1.0">
+    <!--Language="1041" Codepage="932" for Japanese-->
+    <Package Id="000485BE-A31F-4D6B-B3D1-337589CEA03D"
+      Keywords="Installer"
+      Description="RTCTree 4.1 installer"
+      Comments="RTCTree is a product of the National Institute for Advanced Industrial Science and Technology, Japan"
+      Manufacturer="AIST"
+      InstallerVersion="400"
+      Languages="1033"
+      SummaryCodepage="1252"
+      />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="PythonDir" Name="Python27">
+        <Directory Id="PythonLib" Name="Lib">
+          <Directory Id="PythonSitePackages" Name="site-packages">
+            <Directory Id="RTCTree" Name="rtctree">
+              <Directory Id="RTCTreeData" Name="data">
+                <Directory Id="RTCTreeIDL" Name="idl">
+                </Directory>
+              </Directory>
+              <Directory Id="RTCTreeRTC" Name="rtc">
+                <Directory Id="RTCTreeIDLOpenRTM" Name="OpenRTM">
+                </Directory>
+                <Directory Id="RTCTreeIDLOpenRTM__POA" Name="OpenRTM__POA">
+                </Directory>
+                <Directory Id="RTCTreeIDLRTC" Name="RTC">
+                </Directory>
+                <Directory Id="RTCTreeIDLRTC__POA" Name="RTC__POA">
+                </Directory>
+                <Directory Id="RTCTreeIDLRTM" Name="RTM">
+                </Directory>
+                <Directory Id="RTCTreeIDLRTM__POA" Name="RTM__POA">
+                </Directory>
+                <Directory Id="RTCTreeIDLSDOPackage" Name="SDOPackage">
+                </Directory>
+                <Directory Id="RTCTreeIDLSDOPackage__POA" Name="SDOPackage__POA">
+                </Directory>
+              </Directory>
+            </Directory>
+            <Directory Id="RTCTreeInfo" Name="rtctree-4.1.0.dist-info">
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- RTCTree files -->
+    <DirectoryRef Id="RTCTree">
+      <Component Id="RTCTree" Guid="ED7D4288-B95F-43FE-9327-0F71303B682A">
+        <RemoveFile Id="RTCTree" On="both" Name="*.pyc"/>
+        <File Id="RTCTree_component.py" Source="C:\Python27\Lib\site-packages\rtctree\component.py"/>
+        <File Id="RTCTree_config_set.py" Source="C:\Python27\Lib\site-packages\rtctree\config_set.py"/>
+        <File Id="RTCTree_directory.py" Source="C:\Python27\Lib\site-packages\rtctree\directory.py"/>
+        <File Id="RTCTree_exceptions.py" Source="C:\Python27\Lib\site-packages\rtctree\exceptions.py"/>
+        <File Id="RTCTree_exec_context.py" Source="C:\Python27\Lib\site-packages\rtctree\exec_context.py"/>
+        <File Id="RTCTree_manager.py" Source="C:\Python27\Lib\site-packages\rtctree\manager.py"/>
+        <File Id="RTCTree_nameserver.py" Source="C:\Python27\Lib\site-packages\rtctree\nameserver.py"/>
+        <File Id="RTCTree_node.py" Source="C:\Python27\Lib\site-packages\rtctree\node.py"/>
+        <File Id="RTCTree_options.py" Source="C:\Python27\Lib\site-packages\rtctree\options.py"/>
+        <File Id="RTCTree_path.py" Source="C:\Python27\Lib\site-packages\rtctree\path.py"/>
+        <File Id="RTCTree_ports.py" Source="C:\Python27\Lib\site-packages\rtctree\ports.py"/>
+        <File Id="RTCTree_sdo.py" Source="C:\Python27\Lib\site-packages\rtctree\sdo.py"/>
+        <File Id="RTCTree_tree.py" Source="C:\Python27\Lib\site-packages\rtctree\tree.py"/>
+        <File Id="RTCTree_unknown.py" Source="C:\Python27\Lib\site-packages\rtctree\unknown.py"/>
+        <File Id="RTCTree_utils.py" Source="C:\Python27\Lib\site-packages\rtctree\utils.py"/>
+        <File Id="RTCTree_zombie.py" Source="C:\Python27\Lib\site-packages\rtctree\zombie.py"/>
+        <File Id="RTCTreeInit" Source="C:\Python27\Lib\site-packages\rtctree\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeData">
+      <Component Id="RTCTreeData" Guid="8FCD8F9A-7802-41E4-AD54-7AFBBCAFABD4">
+        <RemoveFile Id="RTCTreeData" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeDataInit" Source="C:\Python27\Lib\site-packages\rtctree\data\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDL">
+      <Component Id="RTCTreeIDL" Guid="3D6B5287-4007-4837-8A77-70B30D76A955">
+        <RemoveFile Id="RTCTreeIDL" On="both" Name="*.pyc"/>
+        <File Id="BasicDataType.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\BasicDataType.idl" KeyPath="yes"/>
+        <File Id="ComponentObserver.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\ComponentObserver.idl"/>
+        <File Id="DataPort.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\DataPort.idl"/>
+        <File Id="ExtendedDataTypes.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\ExtendedDataTypes.idl"/>
+        <File Id="InterfaceDataTypes.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\InterfaceDataTypes.idl"/>
+        <File Id="Logger.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\Logger.idl"/>
+        <File Id="Manager.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\Manager.idl"/>
+        <File Id="OpenRTM.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\OpenRTM.idl"/>
+        <File Id="RTC.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\RTC.idl"/>
+        <File Id="SDOPackage.idl" Source="C:\Python27\Lib\site-packages\rtctree\data\idl\SDOPackage.idl"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeRTC">
+      <Component Id="RTCTreeRTC" Guid="9C80E763-7691-42CD-925B-5D8A9962949B">
+        <RemoveFile Id="RTCTreeRTC" On="both" Name="*.pyc"/>
+        <File Id="BasicDataType_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\BasicDataType_idl.py"/>
+        <File Id="ComponentObserver_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\ComponentObserver_idl.py"/>
+        <File Id="DataPort_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\DataPort_idl.py"/>
+        <File Id="ExtendedDataTypes_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\ExtendedDataTypes_idl.py"/>
+        <File Id="InterfaceDataTypes_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\InterfaceDataTypes_idl.py"/>
+        <File Id="Logger_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\Logger_idl.py"/>
+        <File Id="Manager_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\Manager_idl.py"/>
+        <File Id="OpenRTM_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\OpenRTM_idl.py"/>
+        <File Id="RTC_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\RTC_idl.py"/>
+        <File Id="SDOPackage_idl.py" Source="C:\Python27\Lib\site-packages\rtctree\rtc\SDOPackage_idl.py"/>
+        <File Id="RTCTreeRTCInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLOpenRTM">
+      <Component Id="RTCTreeIDLOpenRTM" Guid="4C5BE0F2-E3E0-427A-9605-337A36328053">
+        <RemoveFile Id="RTCTreeIDLOpenRTM" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLOpenRTMInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\OpenRTM\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLOpenRTM__POA">
+      <Component Id="RTCTreeIDLOpenRTM__POA" Guid="91BEA41B-5200-4520-91B5-AB052801C598">
+        <RemoveFile Id="RTCTreeIDLOpenRTM__POA" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLOpenRTM__POAInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\OpenRTM__POA\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLRTC">
+      <Component Id="RTCTreeIDLRTC" Guid="BA8AA1B5-3231-4B8F-A5DE-5D47CDCB6564">
+        <RemoveFile Id="RTCTreeIDLRTC" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLRTCInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\RTC\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLRTC__POA">
+      <Component Id="RTCTreeIDLRTC__POA" Guid="6E17C251-1EA8-4637-BB1F-29D20BA9B5FB">
+        <RemoveFile Id="RTCTreeIDLRTC__POA" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLRTC__POAInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\RTC__POA\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLRTM">
+      <Component Id="RTCTreeIDLRTM" Guid="7ACB99D2-8E6C-4F6E-B7B8-4F46CAF38755">
+        <RemoveFile Id="RTCTreeIDLRTM" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLRTMInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\RTM\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLRTM__POA">
+      <Component Id="RTCTreeIDLRTM__POA" Guid="63F7C479-26C8-437B-8598-59FD3FDDC586">
+        <RemoveFile Id="RTCTreeIDLRTM__POA" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLRTM__POAInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\RTM__POA\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLSDOPackage">
+      <Component Id="RTCTreeIDLSDOPackage" Guid="EAA4BCB0-B27F-4954-8D00-757E1B94F714">
+        <RemoveFile Id="RTCTreeIDLSDOPackage" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLSDOPackageInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\SDOPackage\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeIDLSDOPackage__POA">
+      <Component Id="RTCTreeIDLSDOPackage__POA" Guid="F7ADC6D6-0B02-49D4-9B57-6FFA14D32AF7">
+        <RemoveFile Id="RTCTreeIDLSDOPackage__POA" On="both" Name="*.pyc"/>
+        <File Id="RTCTreeIDLSDOPackage__POAInit" Source="C:\Python27\Lib\site-packages\rtctree\rtc\SDOPackage__POA\__init__.py" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="RTCTreeInfo">
+      <Component Id="RTCTreeInfo" Guid="A03591BC-0FAA-4B71-979E-EA6A57A864B4">
+        <File Id="RTCTreeDESCRIPTION.rst" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\DESCRIPTION.rst" KeyPath="yes"/>
+        <File Id="RTCTreeMETADATA" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\METADATA"/>
+        <File Id="RTCTreemetadata.json" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\metadata.json"/>
+        <File Id="RTCTreeRECORD" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\RECORD"/>
+        <File Id="RTCTreetop_level.txt" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\top_level.txt"/>
+        <File Id="RTCTreeWHEEL" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\WHEEL"/>
+      </Component>
+    </DirectoryRef>
+  </Module>
+</Wix>
