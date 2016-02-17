@@ -5,6 +5,9 @@ install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq -y python-pip python-dev openrtm-aist-python python-omniorb omniidl-python omniorb-nameserver omniorb-idl omniidl
   - sudo pip install pyyaml nose rednose coverage coveralls
-script: nosetests -v --rednose --with-doctest --with-coverage --cover-package=rtctree --cover-erase
+script:
+  - python setup.py build_idl
+  - ln -s `pwd`/build/stubs/rtctree/rtc rtctree/
+  - nosetests -v --rednose --with-doctest --with-coverage --cover-package=rtctree --cover-erase
 after_success:
   coveralls
