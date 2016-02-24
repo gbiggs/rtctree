@@ -42,6 +42,53 @@ class Manager(TreeNode):
     store child components and child managers. They can be used to add and
     remove new components and managers to the tree at run time.
 
+    To use the manager, we have to run rtcd or rtcd_python with -d option:
+    >>> import subprocess, shlex
+    >>> p = subprocess.Popen(shlex.split('rtcd_python -d -f test/rtc.conf'))
+
+    Get the node tree and clear the zombies:
+    >>> import rtctree.tree, time
+    >>> t = rtctree.tree.RTCTree()
+    >>> t.add_name_server('localhost')
+    >>> n = t.get_node(['/', 'localhost'])
+    >>> while len(n.children) == 0:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    >>> for c in n.children[0].children:
+    ...     if c.is_zombie:
+    ...         n.children[0].unbind(c.name)
+    >>> n.reparse()
+
+    Find the manager from the node tree:
+    >>> while len(n.children[0].children) == 0:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    >>> m = n.children[0].children[0]
+
+    Modules can be loaded with load_module function:
+    >>> m.load_module('c1_comp', 'init')
+    >>> m.load_module('c2_comp', 'init')
+    >>> 'c1_comp.py' in m.loaded_modules[0]['file_path']
+    True
+    
+    This returns zero length probably due to rtcd bug
+    >>> m.loadable_modules
+    []
+
+    Now, we create a component with create_component function:
+    >>> m.create_component('C1')
+    >>> len(m.components)
+    1
+    >>> m.components[0].name
+    'C10.rtc'
+
+    We have to refresh the node tree to find the created component:
+    >>> len(n.children[0].children)
+    1
+    >>> n.reparse()
+    >>> len(n.children[0].children)
+    2
+    >>> p.terminate()
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''
