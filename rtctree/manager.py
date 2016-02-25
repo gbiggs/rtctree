@@ -60,10 +60,13 @@ class Manager(TreeNode):
     >>> n.reparse()
 
     Find the manager from the node tree:
-    >>> while len(n.children[0].children) == 0:
+    >>> m = None
+    >>> while m is None:
     ...     time.sleep(0.1)
     ...     n.reparse()
-    >>> m = n.children[0].children[0]
+    ...     for c in n.children[0].children:
+    ...         if c.name == 'manager.mgr':
+    ...             m = c
 
     Modules can be loaded with load_module function:
     >>> m.load_module('c1_comp', 'init')
@@ -83,12 +86,22 @@ class Manager(TreeNode):
     'C10.rtc'
 
     We have to refresh the node tree to find the created component:
-    >>> len(n.children[0].children)
-    1
+    >>> cnum = len(n.children[0].children)
     >>> n.reparse()
-    >>> len(n.children[0].children)
-    2
+    >>> len(n.children[0].children) - cnum
+    1
+
+    Delete the component we just created:
+    ... >>> m.delete_component(m.components[0].name)  # not work probably due to rtcd_python implementation
+    ... >>> m.reparse()
+    ... >>> len(m.components) - cnum
+    ... 0
+
+    Finally shutdown the manager:
+    ... >>> m.shutdown()  # not work probably due to rtcd_python implementation
     >>> p.terminate()
+    >>> p.wait()
+    -15
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''

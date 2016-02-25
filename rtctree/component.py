@@ -71,6 +71,67 @@ class Component(TreeNode):
       A heartbeat was received from the component. The time the beat was
       received is passed.
 
+    To explain the usage of Component node, we first launch an example component:
+    >>> import subprocess, shlex
+    >>> p = subprocess.Popen(shlex.split('./test/c1_comp.py -f test/rtc.conf'))
+
+    Get the node tree and find the target component:
+    >>> import rtctree.tree, time
+    >>> t = rtctree.tree.RTCTree()
+    >>> t.add_name_server('localhost')
+    >>> n = t.get_node(['/', 'localhost'])
+    >>> while len(n.children) == 0:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    >>> comp = None
+    >>> while comp is None:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    ...     for c in n.children[0].children:
+    ...         if c.name == 'C10.rtc' and c.is_zombie == False:
+    ...             comp = c
+
+    Let's check component properties:
+    >>> comp.name
+    'C10.rtc'
+    >>> comp.description
+    'Custom data type output component.'
+    >>> comp.category
+    'DataProducer'
+    >>> comp.vendor
+    'Geoffrey Biggs, AIST'
+    >>> comp.version
+    '1.0'
+    
+    Rest of properties can be accessed from properties member variable:
+    >>> comp.properties['naming.type']
+    'corba'
+
+    This component has one outport:
+    >>> len(comp.ports)
+    1
+    >>> len(comp.inports)
+    0
+    >>> len(comp.outports)
+    1
+    >>> len(comp.svcports)
+    0
+
+    None of the port is connected at this moment:
+    >>> len(comp.connected_ports)
+    0
+
+    Initial state of the component is inactive:
+    >>> comp.state == rtctree.component.Component.INACTIVE
+    True
+    
+    Each component has its own EC as default:
+    >>> len(comp.owned_ecs)
+    1
+
+    >>> p.terminate()
+    >>> p.wait()
+    -15
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor.
