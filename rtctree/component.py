@@ -91,23 +91,35 @@ class Component(TreeNode):
     ...         if c.name == 'C10.rtc' and c.is_zombie == False:
     ...             comp = c
 
+    Parent object should be context node:
+    >>> comp.parent == n.children[0]
+    True
+
     Let's check component properties:
+    >>> comp.reparse()
     >>> comp.name
     'C10.rtc'
     >>> comp.description
     'Custom data type output component.'
     >>> comp.category
     'DataProducer'
+    >>> comp.type_name
+    'C1'
     >>> comp.vendor
     'Geoffrey Biggs, AIST'
     >>> comp.version
     '1.0'
-    
+    >>> comp.organisations
+    []
+    >>> comp.parent_organisations
+    []
+
     Rest of properties can be accessed from properties member variable:
     >>> comp.properties['naming.type']
     'corba'
 
     This component has one outport:
+    >>> comp.reparse_ports()
     >>> len(comp.ports)
     1
     >>> len(comp.inports)
@@ -126,9 +138,12 @@ class Component(TreeNode):
     True
     
     Each component has its own EC as default:
+    >>> comp.reparse_ecs()
     >>> len(comp.owned_ecs)
     1
 
+    Now we exit component:
+    >>> comp.exit()
     >>> p.terminate()
     >>> p.wait()
     -15
