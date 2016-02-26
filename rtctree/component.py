@@ -141,6 +141,13 @@ class Component(TreeNode):
     >>> comp.reparse_ecs()
     >>> len(comp.owned_ecs)
     1
+    >>> ec = comp.owned_ecs[0]
+    >>> ec.rate
+    1000.0
+    >>> ec.kind_as_string(add_colour=False)
+    'Periodic'
+    >>> ec.running_as_string(add_colour=False)
+    'Running'
 
     Now we exit component:
     >>> comp.exit()

@@ -78,18 +78,57 @@ class Manager(TreeNode):
     >>> m.loadable_modules
     []
 
-    Now, we create a component with create_component function:
+    Now, we create components with create_component function:
     >>> m.create_component('C1')
+    >>> m.create_component('C2')
     >>> len(m.components)
-    1
+    2
     >>> m.components[0].name
     'C10.rtc'
+    >>> m.components[1].name
+    'C20.rtc'
 
     We have to refresh the node tree to find the created component:
     >>> cnum = len(n.children[0].children)
     >>> n.reparse()
     >>> len(n.children[0].children) - cnum
+    2
+
+    Here, we create a composite component from the two components:
+    >>> m.create_component('PeriodicECSharedComposite?&instance_name=test')
+    >>> comp = None
+    >>> while comp is None:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    ...     for c in n.children[0].children:
+    ...         if c.name == 'test.rtc' and c.is_zombie == False:
+    ...             comp = c
+    >>> comp.is_composite
+    True
+    >>> comp.add_members([m.components[0], m.components[1]])
+
+    Check the composite component organizations:
+    >>> len(comp.organisations)
     1
+    >>> len(comp.organisations[0].members)
+    2
+    >>> len(comp.members)
+    1
+    >>> len(comp.members.values()[0])
+    2
+    >>> comp.is_member(m.components[0])
+    True
+    >>> comp.is_member(m.components[1])
+    True
+    >>> m.components[0].is_composite_member
+    True
+
+    Remove a member from the composite component:
+    >>> comp.remove_members([m.components[1]])
+    >>> comp.is_member(m.components[0])
+    True
+    >>> comp.is_member(m.components[1])
+    False
 
     Delete the component we just created:
     ... >>> m.delete_component(m.components[0].name)  # not work probably due to rtcd_python implementation
