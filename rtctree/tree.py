@@ -54,6 +54,39 @@ class RTCTree(object):
     after it, that element will be treated as a name server. Otherwise the path
     is considered to be bad.
 
+    To explain the usage, we first launch manager and component:
+    >>> import subprocess, shlex, time
+    >>> p = []
+    >>> p.append(subprocess.Popen(shlex.split('rtcd_python -d -f test/rtc.conf')))
+    >>> p.append(subprocess.Popen(shlex.split('./test/c1_comp.py -f test/rtc.conf')))
+
+    Initialize RTCTree and wait for the manager and the component:
+    >>> t = RTCTree(servers=['localhost'])
+    >>> while t.is_manager(['/', 'localhost', 'local.host_cxt', 'manager.mgr']) == False:
+    ...     time.sleep(0.1)
+    ...     t.get_node(['/', 'localhost']).reparse()
+    >>> while t.is_component(['/', 'localhost', 'local.host_cxt', 'C10.rtc']) == False:
+    ...     time.sleep(0.1)
+    ...     t.get_node(['/', 'localhost']).reparse()
+
+    Basic RTCTree operations:
+    >>> t.is_nameserver(['/', 'localhost'])
+    True
+    >>> t.is_directory(['/', 'localhost', 'local.host_cxt'])
+    True
+    >>> n = t.get_node(['/', 'localhost', 'local.host_cxt', 'manager.mgr'])
+    >>> type(n)
+    <class 'rtctree.manager.Manager'>
+    >>> n = t.get_node(['/', 'localhost', 'local.host_cxt', 'C10.rtc'])
+    >>> type(n)
+    <class 'rtctree.component.Component'>
+
+    >>> p[0].terminate()
+    >>> p[0].wait()
+    -15
+    >>> p[1].terminate()
+    >>> p[1].wait()
+    -15
     '''
     def __init__(self, servers=None, paths=None, orb=None, filter=[],
             dynamic=False, *args, **kwargs):

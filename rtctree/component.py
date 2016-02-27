@@ -203,6 +203,7 @@ class Component(TreeNode):
     >>> p[0].terminate()
     >>> p[0].wait()
     -15
+    >>> comp2.exit()
     >>> p[1].terminate()
     >>> p[1].wait()
     -15
