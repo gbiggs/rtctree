@@ -71,9 +71,11 @@ class Component(TreeNode):
       A heartbeat was received from the component. The time the beat was
       received is passed.
 
-    To explain the usage of Component node, we first launch an example component:
+    To explain the usage of Component node, we first launch example components:
     >>> import subprocess, shlex
-    >>> p = subprocess.Popen(shlex.split('./test/c1_comp.py -f test/rtc.conf'))
+    >>> p = []
+    >>> p.append(subprocess.Popen(shlex.split('./test/c1_comp.py -f test/rtc.conf')))
+    >>> p.append(subprocess.Popen(shlex.split('./test/c2_comp.py -f test/rtc.conf')))
 
     Get the node tree and find the target component:
     >>> import rtctree.tree, time
@@ -84,15 +86,20 @@ class Component(TreeNode):
     ...     time.sleep(0.1)
     ...     n.reparse()
     >>> comp = None
-    >>> while comp is None:
+    >>> comp2 = None
+    >>> while comp is None or comp2 is None:
     ...     time.sleep(0.1)
     ...     n.reparse()
     ...     for c in n.children[0].children:
     ...         if c.name == 'C10.rtc' and c.is_zombie == False:
     ...             comp = c
+    ...         if c.name == 'C20.rtc' and c.is_zombie == False:
+    ...             comp2 = c
 
     Parent object should be context node:
     >>> comp.parent == n.children[0]
+    True
+    >>> comp2.parent == n.children[0]
     True
 
     Let's check component properties:
@@ -118,7 +125,7 @@ class Component(TreeNode):
     >>> comp.properties['naming.type']
     'corba'
 
-    This component has one outport:
+    First component has one outport:
     >>> comp.reparse_ports()
     >>> len(comp.ports)
     1
@@ -128,9 +135,51 @@ class Component(TreeNode):
     1
     >>> len(comp.svcports)
     0
+    >>> comp.outports[0].porttype
+    'DataOutPort'
+
+    Second component has one inport:
+    >>> comp2.reparse_ports()
+    >>> len(comp2.ports)
+    1
+    >>> len(comp2.inports)
+    1
+    >>> len(comp2.outports)
+    0
+    >>> len(comp2.svcports)
+    0
+    >>> comp2.inports[0].porttype
+    'DataInPort'
 
     None of the port is connected at this moment:
     >>> len(comp.connected_ports)
+    0
+    >>> len(comp2.connected_ports)
+    0
+
+    Now, we connect ports:
+    >>> comp.outports[0].connect([comp2.inports[0]])
+
+    A pair of ports is connected:
+    >>> len(comp.connected_ports)
+    1
+    >>> len(comp2.connected_ports)
+    1
+    >>> comp.outports[0].is_connected
+    True
+    >>> comp2.inports[0].is_connected
+    True
+    >>> len(comp.outports[0].connections)
+    1
+    >>> len(comp2.inports[0].connections)
+    1
+
+    Now, we disconnect ports:
+    >>> comp.outports[0].disconnect_all()
+    >>> comp2.reparse()
+    >>> len(comp.connected_ports)
+    0
+    >>> len(comp2.connected_ports)
     0
 
     Initial state of the component is inactive:
@@ -149,10 +198,13 @@ class Component(TreeNode):
     >>> ec.running_as_string(add_colour=False)
     'Running'
 
-    Now we exit component:
+    Now we exit the components:
     >>> comp.exit()
-    >>> p.terminate()
-    >>> p.wait()
+    >>> p[0].terminate()
+    >>> p[0].wait()
+    -15
+    >>> p[1].terminate()
+    >>> p[1].wait()
     -15
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
