@@ -87,7 +87,11 @@ class RTCTree(object):
     '/localhost/local.host_cxt/C10.rtc'
     >>> n.parent == t.get_node(['/', 'localhost', 'local.host_cxt'])
     True
+    >>> n.parent_name
+    'local.host_cxt'
     >>> n.nameserver == t.get_node(['/', 'localhost'])
+    True
+    >>> n.root == t.get_node(['/'])
     True
 
     >>> p[0].terminate()
