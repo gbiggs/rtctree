@@ -68,11 +68,30 @@ class Manager(TreeNode):
     ...         if c.name == 'manager.mgr':
     ...             m = c
 
+    >>> m.configuration['manager.name']
+    'manager'
+    >>> m.set_config_parameter('test.config', 'test')
+    >>> m.configuration['test.config']
+    'test'
+    >>> m.profile['language']
+    'Python'
+    >>> m.is_master
+    True
+    >>> m.slaves
+    []
+
+    The manager has ability to create a composite component by default:
+    >>> len(m.factory_profiles)
+    1
+
     Modules can be loaded with load_module function:
     >>> m.load_module('c1_comp', 'init')
     >>> m.load_module('c2_comp', 'init')
+    >>> m._parse()
     >>> 'c1_comp.py' in m.loaded_modules[0]['file_path']
     True
+    >>> len(m.factory_profiles)
+    3
     
     This returns zero length probably due to rtcd bug
     >>> m.loadable_modules
