@@ -81,6 +81,15 @@ class RTCTree(object):
     >>> type(n)
     <class 'rtctree.component.Component'>
 
+    >>> n.full_path
+    ['/', 'localhost', 'local.host_cxt', 'C10.rtc']
+    >>> n.full_path_str
+    '/localhost/local.host_cxt/C10.rtc'
+    >>> n.parent == t.get_node(['/', 'localhost', 'local.host_cxt'])
+    True
+    >>> n.nameserver == t.get_node(['/', 'localhost'])
+    True
+
     >>> p[0].terminate()
     >>> p[0].wait()
     -15
