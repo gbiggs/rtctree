@@ -125,6 +125,18 @@ class Component(TreeNode):
     >>> comp.properties['naming.type']
     'corba'
 
+    We can access to configuration parameter by following api:
+    >>> comp.conf_sets.keys()
+    ['default']
+    >>> comp.activate_conf_set('default')
+    >>> comp.active_conf_set_name
+    'default'
+    >>> comp.active_conf_set.data
+    {'param': '0'}
+    >>> comp.set_conf_set_value('default', 'param', '1')
+    >>> comp.active_conf_set.data
+    {'param': '1'}
+
     First component has one outport:
     >>> comp.reparse_ports()
     >>> len(comp.ports)
@@ -185,7 +197,14 @@ class Component(TreeNode):
     Initial state of the component is inactive:
     >>> comp.state == rtctree.component.Component.INACTIVE
     True
-    
+    >>> comp.get_state_string(add_colour=False)
+    'Inactive'
+    >>> comp.get_state_in_ec_string(0, add_colour=False)
+    'Inactive'
+
+    TODO: This api not work (exec_contexts -> participating_ecs?)
+    ... >>> comp.alive
+
     Each component has its own EC as default:
     >>> comp.reparse_ecs()
     >>> len(comp.owned_ecs)

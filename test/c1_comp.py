@@ -16,6 +16,7 @@ import RTC
 class C1(OpenRTM_aist.DataFlowComponentBase):
     def __init__(self, mgr):
         OpenRTM_aist.DataFlowComponentBase.__init__(self, mgr)
+        self._param = [0]
 
     def onInitialize(self):
         try:
@@ -32,6 +33,7 @@ class C1(OpenRTM_aist.DataFlowComponentBase):
             self._outport = OpenRTM_aist.OutPort('output', self._out_data,
                     OpenRTM_aist.RingBuffer(8))
             self.registerOutPort('output', self._outport)
+            self.bindParameter('param', self._param, "0")
             self._count = 0
         except:
             print_exc()
@@ -69,6 +71,7 @@ def init(mgr):
         'max_instance',             '999',
         'language',                 'Python',
         'lang_type',                'SCRIPT',
+        'conf.default.param',       '0',
         '']
     profile = OpenRTM_aist.Properties(defaults_str=spec)
     mgr.registerFactory(profile, C1,
