@@ -44,6 +44,14 @@ class TreeNode(object):
         @param dynamic Enable dynamic features such as observers on this node
                        and any children it creates.
 
+        Example:
+        >>> c1 = TreeNode(name='c1')
+        >>> c2 = TreeNode(name='c2')
+        >>> p = TreeNode(name='p', children={'c1':c1, 'c2':c2}, dynamic=True)
+        >>> c1._parent = p
+        >>> c2._parent = p
+        >>> 'p' in str(p)
+        True
         '''
         super(TreeNode, self).__init__(*args, **kwargs)
         self._mutex = threading.RLock()
@@ -95,6 +103,16 @@ class TreeNode(object):
         @return The node pointed to by @ref path, or None if the path does not
                 point to a node in the tree below this node.
 
+        Example:
+        >>> c1 = TreeNode(name='c1')
+        >>> c2 = TreeNode(name='c2')
+        >>> p = TreeNode(name='p', children={'c1':c1, 'c2':c2})
+        >>> c1._parent = p
+        >>> c2._parent = p
+        >>> p.get_node(['p', 'c1']) == c1
+        True
+        >>> p.get_node(['p', 'c2']) == c2
+        True
         '''
         with self._mutex:
             if path[0] == self._name:
@@ -117,6 +135,16 @@ class TreeNode(object):
                 or this node itself (for paths one element long). False
                 otherwise.
 
+        Example:
+        >>> c1 = TreeNode(name='c1')
+        >>> c2 = TreeNode(name='c2')
+        >>> p = TreeNode(name='p', children={'c1':c1, 'c2':c2})
+        >>> c1._parent = p
+        >>> c2._parent = p
+        >>> p.has_path(['p', 'c1'])
+        True
+        >>> p.has_path(['p', 'c3'])
+        False
         '''
         with self._mutex:
             if path[0] == self._name:
@@ -155,6 +183,18 @@ class TreeNode(object):
                       properties (is_component, etc), or a function object.
         @return The results of the calls to @ref func in a list.
 
+        Example:
+        >>> c1 = TreeNode(name='c1')
+        >>> c2 = TreeNode(name='c2')
+        >>> p = TreeNode(name='p', children={'c1':c1, 'c2':c2})
+        >>> c1._parent = p
+        >>> c2._parent = p
+        >>> def hello(n, args):
+        ...     return args[0] + ' ' + n._name
+        >>> p.iterate(hello, args=['hello'])
+        ['hello p', 'hello c2', 'hello c1']
+        >>> p.iterate(hello, args=['hello'], filter=['_name=="c1"'])
+        ['hello c1']
         '''
         with self._mutex:
             result = []
