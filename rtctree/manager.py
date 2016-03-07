@@ -42,6 +42,124 @@ class Manager(TreeNode):
     store child components and child managers. They can be used to add and
     remove new components and managers to the tree at run time.
 
+    To use the manager, we have to run rtcd or rtcd_python with -d option:
+    >>> import subprocess, shlex
+    >>> p = subprocess.Popen(shlex.split('rtcd_python -d -f test/rtc.conf'))
+
+    Get the node tree and clear the zombies:
+    >>> import rtctree.tree, time
+    >>> t = rtctree.tree.RTCTree()
+    >>> t.add_name_server('localhost')
+    >>> n = t.get_node(['/', 'localhost'])
+    >>> while len(n.children) == 0:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    >>> for c in n.children[0].children:
+    ...     if c.is_zombie:
+    ...         n.children[0].unbind(c.name)
+    >>> n.reparse()
+
+    Find the manager from the node tree:
+    >>> m = None
+    >>> while m is None:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    ...     for c in n.children[0].children:
+    ...         if c.name == 'manager.mgr':
+    ...             m = c
+
+    >>> m.configuration['manager.name']
+    'manager'
+    >>> m.set_config_parameter('test.config', 'test')
+    >>> m.configuration['test.config']
+    'test'
+    >>> m.profile['language']
+    'Python'
+    >>> m.is_master
+    True
+    >>> m.slaves
+    []
+
+    The manager has ability to create a composite component by default:
+    >>> len(m.factory_profiles)
+    1
+
+    Modules can be loaded with load_module function:
+    >>> m.load_module('c1_comp', 'init')
+    >>> m.load_module('c2_comp', 'init')
+    >>> m._parse()
+    >>> 'c1_comp.py' in m.loaded_modules[0]['file_path']
+    True
+    >>> len(m.factory_profiles)
+    3
+    
+    This returns zero length probably due to rtcd bug
+    >>> m.loadable_modules
+    []
+
+    Now, we create components with create_component function:
+    >>> m.create_component('C1')
+    >>> m.create_component('C2')
+    >>> len(m.components)
+    2
+    >>> m.components[0].name
+    'C10.rtc'
+    >>> m.components[1].name
+    'C20.rtc'
+
+    We have to refresh the node tree to find the created component:
+    >>> cnum = len(n.children[0].children)
+    >>> n.reparse()
+    >>> len(n.children[0].children) - cnum
+    2
+
+    Here, we create a composite component from the two components:
+    >>> m.create_component('PeriodicECSharedComposite?&instance_name=test')
+    >>> comp = None
+    >>> while comp is None:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    ...     for c in n.children[0].children:
+    ...         if c.name == 'test.rtc' and c.is_zombie == False:
+    ...             comp = c
+    >>> comp.is_composite
+    True
+    >>> comp.add_members([m.components[0], m.components[1]])
+
+    Check the composite component organizations:
+    >>> len(comp.organisations)
+    1
+    >>> len(comp.organisations[0].members)
+    2
+    >>> len(comp.members)
+    1
+    >>> len(comp.members.values()[0])
+    2
+    >>> comp.is_member(m.components[0])
+    True
+    >>> comp.is_member(m.components[1])
+    True
+    >>> m.components[0].is_composite_member
+    True
+
+    Remove a member from the composite component:
+    >>> comp.remove_members([m.components[1]])
+    >>> comp.is_member(m.components[0])
+    True
+    >>> comp.is_member(m.components[1])
+    False
+
+    Delete the component we just created:
+    ... >>> m.delete_component(m.components[0].name)  # not work probably due to rtcd_python implementation
+    ... >>> m.reparse()
+    ... >>> len(m.components) - cnum
+    ... 0
+
+    Finally shutdown the manager:
+    ... >>> m.shutdown()  # not work probably due to rtcd_python implementation
+    >>> p.terminate()
+    >>> p.wait()
+    -15
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor. Calls the TreeNode constructor.'''

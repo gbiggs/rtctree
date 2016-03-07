@@ -21,6 +21,7 @@ of name servers, directories, managers and components.
 import sys
 
 import omniORB
+import omniORB.any
 
 from rtctree.rtc import SDOPackage
 

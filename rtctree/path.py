@@ -45,18 +45,23 @@ def parse_path(path):
 
     Examples:
 
-    'localhost:30000/manager/comp0.rtc' ->
-        (['localhost:30000', 'manager', 'comp0.rtc'], None)
-    'localhost/manager/comp0.rtc:in' ->
-        (['localhost', 'manager', 'comp0.rtc'], 'in')
-    '/localhost/manager/comp0.rtc' ->
-        (['/', 'localhost', 'manager', 'comp0.rtc'], None)
-    '/localhost/manager/comp0.rtc:in' ->
-        (['/', 'localhost', 'manager', 'comp0.rtc'], 'in')
-    'manager/comp0.rtc' ->
-            (['manager', 'comp0.rtc'], None)
-    'comp0.rtc' ->
-            (['comp0.rtc'], None)
+    >>> parse_path('localhost:30000/manager/comp0.rtc')
+    (['localhost:30000', 'manager', 'comp0.rtc'], None)
+    
+    >>> parse_path('localhost/manager/comp0.rtc:in')
+    (['localhost', 'manager', 'comp0.rtc'], 'in')
+    
+    >>> parse_path('/localhost/manager/comp0.rtc')
+    (['/', 'localhost', 'manager', 'comp0.rtc'], None)
+    
+    >>> parse_path('/localhost/manager/comp0.rtc:in')
+    (['/', 'localhost', 'manager', 'comp0.rtc'], 'in')
+    
+    >>> parse_path('manager/comp0.rtc')
+    (['manager', 'comp0.rtc'], None)
+    
+    >>> parse_path('comp0.rtc')
+    (['comp0.rtc'], None)
 
     '''
     bits = path.lstrip('/').split('/')
@@ -97,6 +102,26 @@ def format_path(path):
 
     @param path A path in rtctree format, as a tuple with the port name as the
                 second component.
+
+    Examples:
+
+    >>> format_path((['localhost:30000', 'manager', 'comp0.rtc'], None))
+    'localhost:30000/manager/comp0.rtc'
+
+    >>> format_path((['localhost', 'manager', 'comp0.rtc'], 'in'))
+    'localhost/manager/comp0.rtc:in'
+    
+    >>> format_path((['/', 'localhost', 'manager', 'comp0.rtc'], None))
+    '/localhost/manager/comp0.rtc'
+    
+    >>> format_path((['/', 'localhost', 'manager', 'comp0.rtc'], 'in'))
+    '/localhost/manager/comp0.rtc:in'
+
+    >>> format_path((['manager', 'comp0.rtc'], None))
+    'manager/comp0.rtc'
+    
+    >>> format_path((['comp0.rtc'], None))
+    'comp0.rtc'
 
     '''
     if path[1]:

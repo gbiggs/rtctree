@@ -71,6 +71,161 @@ class Component(TreeNode):
       A heartbeat was received from the component. The time the beat was
       received is passed.
 
+    To explain the usage of Component node, we first launch example components:
+    >>> import subprocess, shlex
+    >>> p = []
+    >>> p.append(subprocess.Popen(shlex.split('./test/c1_comp.py -f test/rtc.conf')))
+    >>> p.append(subprocess.Popen(shlex.split('./test/c2_comp.py -f test/rtc.conf')))
+
+    Get the node tree and find the target component:
+    >>> import rtctree.tree, time
+    >>> t = rtctree.tree.RTCTree()
+    >>> t.add_name_server('localhost')
+    >>> n = t.get_node(['/', 'localhost'])
+    >>> while len(n.children) == 0:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    >>> comp = None
+    >>> comp2 = None
+    >>> while comp is None or comp2 is None:
+    ...     time.sleep(0.1)
+    ...     n.reparse()
+    ...     for c in n.children[0].children:
+    ...         if c.name == 'C10.rtc' and c.is_zombie == False:
+    ...             comp = c
+    ...         if c.name == 'C20.rtc' and c.is_zombie == False:
+    ...             comp2 = c
+
+    Parent object should be context node:
+    >>> comp.parent == n.children[0]
+    True
+    >>> comp2.parent == n.children[0]
+    True
+
+    Let's check component properties:
+    >>> comp.reparse()
+    >>> comp.name
+    'C10.rtc'
+    >>> comp.description
+    'Custom data type output component.'
+    >>> comp.category
+    'DataProducer'
+    >>> comp.type_name
+    'C1'
+    >>> comp.vendor
+    'Geoffrey Biggs, AIST'
+    >>> comp.version
+    '1.0'
+    >>> comp.organisations
+    []
+    >>> comp.parent_organisations
+    []
+
+    Rest of properties can be accessed from properties member variable:
+    >>> comp.properties['naming.type']
+    'corba'
+
+    We can access to configuration parameter by following api:
+    >>> comp.conf_sets.keys()
+    ['default']
+    >>> comp.activate_conf_set('default')
+    >>> comp.active_conf_set_name
+    'default'
+    >>> comp.active_conf_set.data
+    {'param': '0'}
+    >>> comp.set_conf_set_value('default', 'param', '1')
+    >>> comp.active_conf_set.data
+    {'param': '1'}
+
+    First component has one outport:
+    >>> comp.reparse_ports()
+    >>> len(comp.ports)
+    1
+    >>> len(comp.inports)
+    0
+    >>> len(comp.outports)
+    1
+    >>> len(comp.svcports)
+    0
+    >>> comp.outports[0].porttype
+    'DataOutPort'
+
+    Second component has one inport:
+    >>> comp2.reparse_ports()
+    >>> len(comp2.ports)
+    1
+    >>> len(comp2.inports)
+    1
+    >>> len(comp2.outports)
+    0
+    >>> len(comp2.svcports)
+    0
+    >>> comp2.inports[0].porttype
+    'DataInPort'
+
+    None of the port is connected at this moment:
+    >>> len(comp.connected_ports)
+    0
+    >>> len(comp2.connected_ports)
+    0
+
+    Now, we connect ports:
+    >>> comp.outports[0].connect([comp2.inports[0]])
+
+    A pair of ports is connected:
+    >>> len(comp.connected_ports)
+    1
+    >>> len(comp2.connected_ports)
+    1
+    >>> comp.outports[0].is_connected
+    True
+    >>> comp2.inports[0].is_connected
+    True
+    >>> len(comp.outports[0].connections)
+    1
+    >>> len(comp2.inports[0].connections)
+    1
+
+    Now, we disconnect ports:
+    >>> comp.outports[0].disconnect_all()
+    >>> comp2.reparse()
+    >>> len(comp.connected_ports)
+    0
+    >>> len(comp2.connected_ports)
+    0
+
+    Initial state of the component is inactive:
+    >>> comp.state == rtctree.component.Component.INACTIVE
+    True
+    >>> comp.get_state_string(add_colour=False)
+    'Inactive'
+    >>> comp.get_state_in_ec_string(0, add_colour=False)
+    'Inactive'
+
+    TODO: This api not work (exec_contexts -> participating_ecs?)
+    ... >>> comp.alive
+
+    Each component has its own EC as default:
+    >>> comp.reparse_ecs()
+    >>> len(comp.owned_ecs)
+    1
+    >>> ec = comp.owned_ecs[0]
+    >>> ec.rate
+    1000.0
+    >>> ec.kind_as_string(add_colour=False)
+    'Periodic'
+    >>> ec.running_as_string(add_colour=False)
+    'Running'
+
+    Now we exit the components:
+    >>> comp.exit()
+    >>> p[0].terminate()
+    >>> p[0].wait()
+    -15
+    >>> comp2.exit()
+    >>> p[1].terminate()
+    >>> p[1].wait()
+    -15
     '''
     def __init__(self, name=None, parent=None, obj=None, *args, **kwargs):
         '''Constructor.
