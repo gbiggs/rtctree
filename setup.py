@@ -28,7 +28,6 @@ import os.path
 import setuptools
 import shutil
 import subprocess
-import sys
 
 
 class BuildIDL(Command):
