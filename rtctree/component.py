@@ -511,6 +511,10 @@ class Component(TreeNode):
     def exit(self):
         '''Stop the component's execution contexts and finalise it.
 
+        This function will make the component exit, shutting down its CORBA
+        object in the process. It will not remove the node from the tree; a
+        reparse is necessary to do that.
+
         This will have flow-on effects to any other components using this
         component's execution contexts and any child components.
 
@@ -563,16 +567,6 @@ class Component(TreeNode):
             else:
                 ec = self.owned_ecs[ec_index]
             ec.deactivate_component(self._obj)
-
-    def exit(self):
-        '''Make a component exit.
-
-        This function will make the component exit, shutting down its CORBA
-        object in the process. It will not remove the node from the tree; a
-        reparse is necessary to do that.
-
-        '''
-        self._obj.exit()
 
     def get_ec(self, ec_handle):
         '''Get a reference to the execution context with the given handle.
