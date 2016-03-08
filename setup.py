@@ -2,7 +2,7 @@
 # -*- Python -*-
 # -*- coding: utf-8 -*-
 
-'''rtctree
+"""rtctree
 
 Copyright (C) 2009-2015
     Geoffrey Biggs
@@ -16,7 +16,7 @@ http://www.gnu.org/licenses/lgpl-3.0.en.html
 
 rtctree install script.
 
-'''
+"""
 
 from distutils.command.build import build
 from distutils.command.install import install
@@ -59,8 +59,10 @@ class BuildIDL(Command):
     def compile_one_idl(self, idl_f):
         outdir_param = '-C' + self.stubs_dir
         pkg_param = '-Wbpackage=rtctree.rtc'
-        p = subprocess.Popen([self.omniidl, '-bpython', outdir_param,
-            pkg_param, idl_f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        idl_path_param = '-Iidl'
+        p = subprocess.Popen([self.omniidl, '-bpython', idl_path_param,
+                              outdir_param, pkg_param, idl_f],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             raise errors.DistutilsExecError(
@@ -70,23 +72,24 @@ class BuildIDL(Command):
     def compile_idl(self):
         log.info('Generating Python stubs from IDL files')
         self.mkpath(self.stubs_dir)
-        idl_files = [os.path.join(self.idl_src_dir, f) \
-                for f in os.listdir(self.idl_src_dir) \
-                if os.path.splitext(f)[1] == '.idl']
+        idl_files = [os.path.join(self.idl_src_dir, f)
+                     for f in os.listdir(self.idl_src_dir)
+                     if os.path.splitext(f)[1] == '.idl']
         for f in idl_files:
             self.compile_one_idl(f)
 
     def move_stubs(self):
         stub_dest = os.path.join(self.build_lib, 'rtctree', 'rtc')
         log.info('Moving stubs to package directory {}'.format(stub_dest))
-        self.copy_tree(os.path.join(self.stubs_dir, 'rtctree', 'rtc'), stub_dest)
+        self.copy_tree(os.path.join(self.stubs_dir, 'rtctree', 'rtc'),
+                       stub_dest)
 
     def copy_idl(self):
         log.info('Copying IDL files')
         self.mkpath(self.idl_dir)
-        idl_files = [os.path.join(self.idl_src_dir, f) \
-                for f in os.listdir(self.idl_src_dir) \
-                if os.path.splitext(f)[1] == '.idl']
+        idl_files = [os.path.join(self.idl_src_dir, f)
+                     for f in os.listdir(self.idl_src_dir)
+                     if os.path.splitext(f)[1] == '.idl']
         for f in idl_files:
             shutil.copy(f, self.idl_dir)
 
@@ -116,8 +119,8 @@ class InstallIDL(Command):
     def finalize_options(self):
         self.set_undefined_options('build', ('build_base', 'build_dir'))
         self.set_undefined_options('install', ('install_lib', 'install_dir'),
-                ('force', 'force'),
-                ('skip_build', 'skip_build'))
+                                   ('force', 'force'),
+                                   ('skip_build', 'skip_build'))
 
     def run(self):
         if not self.skip_build:
@@ -136,31 +139,32 @@ install.sub_commands.append(('install_idl', None))
 
 
 setuptools.setup(name='rtctree',
-    version='4.1.0',
-    description='API for interacting with running RT Components and managing '
-        'RTM-based systems.',
-    long_description='API for interacting with running RT Components and '
-        'managing RTM-based systems.',
-    author='Geoffrey Biggs',
-    author_email='geoffrey.biggs@aist.go.jp',
-    url='http://github.com/gbiggs/rtctree',
-    license='LGPL3',
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
-        'Topic :: Software Development',
-        ],
-    packages=setuptools.find_packages(),
-    include_package_data = True,
-    cmdclass={
-        'build_idl':BuildIDL, 'install_idl': InstallIDL
-        },
-    zip_safe = True
-    )
+                 version='4.1.0',
+                 description='API for interacting with running RT Components '
+                 'and managing RTM-based systems.',
+                 long_description='API for interacting with running RT '
+                 'Components and managing RTM-based systems.',
+                 author='Geoffrey Biggs',
+                 author_email='geoffrey.biggs@aist.go.jp',
+                 url='http://github.com/gbiggs/rtctree',
+                 license='LGPL3',
+                 classifiers=[
+                     'Development Status :: 5 - Production/Stable',
+                     'Intended Audience :: Developers',
+                     'License :: OSI Approved :: GNU Lesser General Public '
+                     'License v3 (LGPLv3)',
+                     'Natural Language :: English',
+                     'Operating System :: OS Independent',
+                     'Programming Language :: Python :: 2.7',
+                     'Topic :: Software Development',
+                 ],
+                 packages=setuptools.find_packages(),
+                 include_package_data=True,
+                 cmdclass={
+                     'build_idl': BuildIDL, 'install_idl': InstallIDL
+                 },
+                 zip_safe=True
+                 )
 
 
 # vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79
