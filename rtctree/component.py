@@ -219,10 +219,12 @@ class Component(TreeNode):
 
     Now we exit the components:
     >>> comp.exit()
+    RTC_OK
     >>> p[0].terminate()
     >>> p[0].wait()
     -15
     >>> comp2.exit()
+    RTC_OK
     >>> p[1].terminate()
     >>> p[1].wait()
     -15
