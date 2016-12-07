@@ -287,4 +287,11 @@ class NotCORBANameError(RtcTreeError):
         return 'Not a CORBA CosNaming.Name: {0}'.format(self.args[0])
 
 
+class InvalidSdoServiceError(RtcTreeError):
+    '''Could not find specified SDO service.'''
+    def __str__(self):
+        return 'Invalid SDO service: {0}'.format(self.args[0])
+
+
+
 # vim: set expandtab tabstop=8 shiftwidth=4 softtabstop=4 textwidth=79

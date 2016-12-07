@@ -19,6 +19,8 @@
 #include "SDOPackage.idl"
 #include "RTC.idl"
 
+#pragma prefix "omg.org"
+
 /*!
  * @if jp
  * @brief コンポーネント状態オブザーバインターフェース
@@ -43,7 +45,7 @@
  * @since 1.1
  * @endif
  */
-module OpenRTM
+module RTC
 {
   /*!
    * @if jp
@@ -277,10 +279,18 @@ module OpenRTM
      *
      * @endif
      */
-    HEARTBEAT,
+    RTC_HEARTBEAT,
+    EC_HEARTBEAT,
+    
+    FSM_PROFILE,
+    FSM_STATUS,
+    FSM_STRUCTURE,
+    
+    USER_DEFINED,
 
     STATUS_KIND_NUM
   };
+  #pragma version StatusKind 1.0
 
   /*!
    * @if jp
@@ -492,5 +502,6 @@ module OpenRTM
      */
     oneway void update_status(in StatusKind status_kind, in string hint);
   };
+  #pragma version ComponentObserver 1.0
 
 };

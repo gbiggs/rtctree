@@ -19,9 +19,10 @@ SDO client objects.
 
 
 from rtctree.rtc import OpenRTM__POA
+from rtctree.rtc import RTC__POA
 
 
-class RTCObserver(OpenRTM__POA.ComponentObserver):
+class RTCObserver(RTC__POA.ComponentObserver):
     def __init__(self, target):
         self._tgt = target
 
@@ -77,8 +78,10 @@ class RTCObserver(OpenRTM__POA.ComponentObserver):
             elif event == 'ACTIVATE_CONFIG_SET':
                 event = self._tgt.CFG_ACTIVATE_SET
             self._tgt._config_event(arg, event)
-        elif kind == 'HEARTBEAT':
-            self._tgt._heartbeat()
+        elif kind == 'HEARTBEAT' or kind == 'RTC_HEARTBEAT' or kind == 'EC_HEARTBEAT':
+            self._tgt._heartbeat(kind)
+        elif kind == 'FSM_PROFILE' or kind == 'FSM_STATUS' or kind == 'FSM_STRUCTURE':
+            self._tgt._fsm_event(kind, hint)
 
 
 class RTCLogger(OpenRTM__POA.Logger):

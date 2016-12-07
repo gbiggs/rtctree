@@ -67,9 +67,12 @@ class Component(TreeNode):
       one of Component.CFG_UPDATE_SET, Component.CFG_UPDATE_PARAM,
       Component.CFG_UPDATE_PARAM_IN_ACTIVE, Component.CFG_ADD_SET,
       Component.CFG_REMOVE_SET and Component.CFG_ACTIVATE_SET.
-    - heartbeat(time)
-      A heartbeat was received from the component. The time the beat was
-      received is passed.
+    - heartbeat(type, time)
+      A heartbeat was received from the component or from the execution context.
+      The time the beat was received is passed.
+    - fsm_event(type, hint)
+      A change in the FSM status has occurred. The type of the event and the
+      content of the event is passed.
 
     To explain the usage of Component node, we first launch example components:
     >>> import subprocess, shlex
@@ -245,7 +248,7 @@ class Component(TreeNode):
         super(Component, self).__init__(name=name, parent=parent,
                                         *args, **kwargs)
         self._set_events(['rtc_status', 'component_profile', 'ec_event',
-            'port_event', 'config_event', 'heartbeat'])
+            'port_event', 'config_event', 'heartbeat', 'fsm_event'])
         self._reset_data()
         self._parse_profile()
 
@@ -853,6 +856,22 @@ class Component(TreeNode):
         return self.get_state_string()
 
     ###########################################################################
+    # FSM4RTC
+
+    def get_extended_fsm_service(self):
+        '''Get a reference to the ExtendedFsmService.
+
+        @return A reference to the ExtendedFsmService object
+        @raises InvalidSdoServiceError
+
+        '''
+        with self._mutex:
+            try:
+                return self._obj.get_sdo_service(RTC.ExtendedFsmService._NP_RepositoryId)._narrow(RTC.ExtendedFsmService)
+            except:
+                raise exceptions.InvalidSdoServiceError('ExtendedFsmService')
+
+    ###########################################################################
     # Port management
 
     def disconnect_all(self):
@@ -1002,7 +1021,7 @@ class Component(TreeNode):
 
         '''
         with self._mutex:
-            obs = rtctree.sdo.RTCLogger(self, cb)
+            obs = sdo.RTCLogger(self, cb)
             uuid_val = uuid.uuid4()
             intf_type = obs._this()._NP_RepositoryId
             props = {'logger.log_level': level,
@@ -1130,11 +1149,15 @@ class Component(TreeNode):
 
     def _enable_dynamic(self, enable=True):
         if enable:
-            obs = rtctree.sdo.RTCObserver(self)
+            obs = sdo.RTCObserver(self)
             uuid_val = uuid.uuid4().get_bytes()
             intf_type = obs._this()._NP_RepositoryId
             props = utils.dict_to_nvlist({'heartbeat.enable': 'YES',
                 'heartbeat.interval': '1.0',
+                'rtc_heartbeat.enable': 'YES',
+                'rtc_heartbeat.interval': '1.0',
+                'ec_heartbeat.enable': 'YES',
+                'ec_heartbeat.interval': '1.0',
                 'observed_status': 'ALL'})
             sprof = SDOPackage.ServiceProfile(id=uuid_val,
                     interface_type=intf_type, service=obs._this(),
@@ -1147,6 +1170,8 @@ class Component(TreeNode):
                 self._obs_id = uuid_val
                 # If we could set an observer, the component is alive
                 self._last_heartbeat = time.time()
+            else:
+                raise exceptions.InvalidSdoServiceError('Observer')
         else: # Disable
             conf = self.object.get_configuration()
             res = conf.remove_service_profile(self._obs_id)
@@ -1214,10 +1239,14 @@ class Component(TreeNode):
         else:
             return self.CREATED
 
-    def _heartbeat(self):
-        # Received a heart beat
+    def _heartbeat(self, kind):
+        # Received a heart beat signal
         self._last_heartbeat = time.time()
-        self._call_cb('heartbeat', self._last_heartbeat)
+        self._call_cb('heartbeat', (kind, self._last_heartbeat))
+
+    def _fsm_event(self, kind, hint):
+        # Received a fsm event
+        self._call_cb('fsm_event', (kind, hint))
 
     def _parse_configuration(self):
         # Parse the component's configuration sets
