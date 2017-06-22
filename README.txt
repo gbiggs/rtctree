@@ -359,6 +359,12 @@ repository. This is better if you wish to contribute patches.
 Changelog
 =========
 
+4.2
+---
+
+ - Implemented support for FSM4RTC (@yosuke)
+ - Added doctests (@yosuke)
+
 4.1
 ---
 

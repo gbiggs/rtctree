@@ -4,11 +4,11 @@
   <Module Id="RTCTree41"
     Language="1033"
     Codepage="1252"
-    Version="4.1.0">
+    Version="4.2.0">
     <!--Language="1041" Codepage="932" for Japanese-->
     <Package Id="000485BE-A31F-4D6B-B3D1-337589CEA03D"
       Keywords="Installer"
-      Description="RTCTree 4.1 installer"
+      Description="RTCTree 4.2 installer"
       Comments="RTCTree is a product of the National Institute for Advanced Industrial Science and Technology, Japan"
       Manufacturer="AIST"
       InstallerVersion="400"
@@ -44,7 +44,7 @@
                 </Directory>
               </Directory>
             </Directory>
-            <Directory Id="RTCTreeInfo" Name="rtctree-4.1.0.dist-info">
+            <Directory Id="RTCTreeInfo" Name="rtctree-4.2.0.dist-info">
             </Directory>
           </Directory>
         </Directory>
@@ -161,12 +161,12 @@
     </DirectoryRef>
     <DirectoryRef Id="RTCTreeInfo">
       <Component Id="RTCTreeInfo" Guid="A03591BC-0FAA-4B71-979E-EA6A57A864B4">
-        <File Id="RTCTreeDESCRIPTION.rst" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\DESCRIPTION.rst" KeyPath="yes"/>
-        <File Id="RTCTreeMETADATA" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\METADATA"/>
-        <File Id="RTCTreemetadata.json" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\metadata.json"/>
-        <File Id="RTCTreeRECORD" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\RECORD"/>
-        <File Id="RTCTreetop_level.txt" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\top_level.txt"/>
-        <File Id="RTCTreeWHEEL" Source="C:\Python27\Lib\site-packages\rtctree-4.1.0.dist-info\WHEEL"/>
+        <File Id="RTCTreeDESCRIPTION.rst" Source="C:\Python27\Lib\site-packages\rtctree-4.2.0.dist-info\DESCRIPTION.rst" KeyPath="yes"/>
+        <File Id="RTCTreeMETADATA" Source="C:\Python27\Lib\site-packages\rtctree-4.2.0.dist-info\METADATA"/>
+        <File Id="RTCTreemetadata.json" Source="C:\Python27\Lib\site-packages\rtctree-4.2.0.dist-info\metadata.json"/>
+        <File Id="RTCTreeRECORD" Source="C:\Python27\Lib\site-packages\rtctree-4.2.0.dist-info\RECORD"/>
+        <File Id="RTCTreetop_level.txt" Source="C:\Python27\Lib\site-packages\rtctree-4.2.0.dist-info\top_level.txt"/>
+        <File Id="RTCTreeWHEEL" Source="C:\Python27\Lib\site-packages\rtctree-4.2.0.dist-info\WHEEL"/>
       </Component>
     </DirectoryRef>
   </Module>
